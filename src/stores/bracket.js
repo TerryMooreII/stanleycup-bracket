@@ -35,9 +35,15 @@ export const useBracketStore = defineStore('bracket', () => {
   }
 
   async function fetchMatchups() {
+    const roundIds = rounds.value.map(r => r.id)
+    if (roundIds.length === 0) {
+      matchups.value = []
+      return
+    }
     const { data } = await supabase
       .from('matchups')
       .select('*, team_home:teams!matchups_team_home_id_fkey(*), team_away:teams!matchups_team_away_id_fkey(*), winner:teams!matchups_winner_id_fkey(*)')
+      .in('round_id', roundIds)
       .order('bracket_position')
     matchups.value = data || []
   }
@@ -55,12 +61,8 @@ export const useBracketStore = defineStore('bracket', () => {
     loading.value = true
     try {
       await fetchActiveSeason()
-      await Promise.all([
-        fetchTeams(),
-        fetchRounds(),
-        fetchMatchups(),
-        fetchPicks(userId)
-      ])
+      await Promise.all([fetchTeams(), fetchRounds()])
+      await Promise.all([fetchMatchups(), fetchPicks(userId)])
     } catch (e) {
       console.error('Bracket fetch error:', e)
     } finally {

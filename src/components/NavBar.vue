@@ -1,9 +1,17 @@
 <script setup>
 import { useAuthStore } from '../stores/auth'
+import { useBracketStore } from '../stores/bracket'
 import { useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const auth = useAuthStore()
+const bracket = useBracketStore()
+
+const cupLogoUrl = computed(() => {
+  const year = bracket.season?.year
+  if (year) return `https://assets.nhle.com/logos/playoffs/png/scp-${year}${year + 1}-cup.png`
+  return 'https://assets.nhle.com/logos/playoffs/png/scp-20252026-cup.png'
+})
 const router = useRouter()
 const menuOpen = ref(false)
 
@@ -18,7 +26,7 @@ async function handleSignOut() {
   <nav class="navbar">
     <div class="nav-content">
       <router-link to="/" class="nav-brand">
-        <img src="https://assets.nhle.com/logos/playoffs/png/scp-20252026-cup.png" alt="Stanley Cup" class="nav-cup-logo" />
+        <img :src="cupLogoUrl" alt="Stanley Cup" class="nav-cup-logo" />
         <span class="brand-text">Stanley Cup Bracket</span>
       </router-link>
 

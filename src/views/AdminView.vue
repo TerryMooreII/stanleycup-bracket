@@ -2,6 +2,7 @@
 import { onMounted, ref, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useBracketStore } from '../stores/bracket'
+import { nhlUrl } from '../lib/nhlApi'
 
 const auth = useAuthStore()
 const bracket = useBracketStore()
@@ -17,6 +18,88 @@ const newSeasonYear = ref(new Date().getFullYear())
 const creatingSeason = ref(false)
 const editingMatchupId = ref(null)
 const editForm = ref({ team_home_id: null, team_away_id: null, seed_home: '', seed_away: '', bracket_position: 1 })
+const importingFromNHL = ref(false)
+const importError = ref('')
+
+async function handleImportFromNHL() {
+  if (!bracket.season?.year || !currentRound.value) return
+
+  // Check if matchups already exist for this round/conference
+  const existing = currentMatchups.value
+  if (existing.length > 0) {
+    if (!confirm(`${existing.length} matchup(s) already exist for this round/conference. Import will add new matchups alongside them. Continue?`)) {
+      return
+    }
+  }
+
+  importingFromNHL.value = true
+  importError.value = ''
+
+  try {
+    const year = bracket.season.year
+    const seasonId = `${year}${year + 1}`
+    const res = await fetch(nhlUrl(`/v1/playoff-series/carousel/${seasonId}`))
+    if (!res.ok) throw new Error('Failed to fetch NHL playoff data')
+    const data = await res.json()
+
+    const nhlRound = (data.rounds || []).find(r => r.roundNumber === selectedRound.value)
+    if (!nhlRound || !nhlRound.series || nhlRound.series.length === 0) {
+      importError.value = 'NHL bracket not available yet for this round.'
+      return
+    }
+
+    // Filter by conference (Round 4 / SCF has no conference split)
+    let seriesToImport = nhlRound.series
+    if (selectedRound.value < 4) {
+      seriesToImport = seriesToImport.filter(s => {
+        const conf = s.topSeed?.conferenceName || s.conference || ''
+        return conf === selectedConference.value
+      })
+    }
+
+    if (seriesToImport.length === 0) {
+      importError.value = 'No matchups found for this conference/round.'
+      return
+    }
+
+    const unmatchedTeams = []
+    let position = existing.length + 1
+
+    for (const series of seriesToImport) {
+      const topAbbrev = series.topSeed?.abbrev
+      const bottomAbbrev = series.bottomSeed?.abbrev
+      if (!topAbbrev || !bottomAbbrev) continue
+
+      const homeTeam = bracket.teams.find(t => t.abbreviation === topAbbrev)
+      const awayTeam = bracket.teams.find(t => t.abbreviation === bottomAbbrev)
+
+      if (!homeTeam) unmatchedTeams.push(topAbbrev)
+      if (!awayTeam) unmatchedTeams.push(bottomAbbrev)
+      if (!homeTeam || !awayTeam) continue
+
+      const seedHome = series.topSeedRank != null ? String(series.topSeedRank) : ''
+      const seedAway = series.bottomSeedRank != null ? String(series.bottomSeedRank) : ''
+
+      await bracket.createMatchup({
+        round_id: currentRound.value.id,
+        team_home_id: homeTeam.id,
+        team_away_id: awayTeam.id,
+        seed_home: seedHome || null,
+        seed_away: seedAway || null,
+        bracket_position: position++,
+        conference: selectedRound.value < 4 ? selectedConference.value : 'Western'
+      })
+    }
+
+    if (unmatchedTeams.length > 0) {
+      importError.value = `Imported but could not match teams: ${[...new Set(unmatchedTeams)].join(', ')}. Add them to the teams table.`
+    }
+  } catch (e) {
+    importError.value = e.message || 'Failed to import from NHL'
+  } finally {
+    importingFromNHL.value = false
+  }
+}
 
 function startEdit(matchup) {
   editingMatchupId.value = matchup.id
@@ -313,10 +396,16 @@ function getLogoUrl(abbr) {
     <div class="matchups-section">
       <div class="section-header">
         <h2>Matchups</h2>
-        <button class="btn-add" @click="showAddMatchup = !showAddMatchup">
-          {{ showAddMatchup ? 'Cancel' : '+ Add Matchup' }}
-        </button>
+        <div class="section-actions">
+          <button class="btn-import" @click="handleImportFromNHL" :disabled="importingFromNHL">
+            {{ importingFromNHL ? 'Importing...' : 'Import from NHL' }}
+          </button>
+          <button class="btn-add" @click="showAddMatchup = !showAddMatchup">
+            {{ showAddMatchup ? 'Cancel' : '+ Add Matchup' }}
+          </button>
+        </div>
       </div>
+      <div v-if="importError" class="import-error">{{ importError }}</div>
 
       <!-- Add matchup form -->
       <div v-if="showAddMatchup" class="add-matchup-form">
@@ -704,6 +793,11 @@ h2 {
   margin-bottom: 16px;
 }
 
+.section-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .btn-add {
   padding: 8px 16px;
   background: var(--accent);
@@ -711,6 +805,35 @@ h2 {
   border-radius: 6px;
   font-weight: 600;
   font-size: 0.85rem;
+}
+
+.btn-import {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--info);
+  color: var(--info);
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.btn-import:hover:not(:disabled) {
+  background: rgba(33, 150, 243, 0.1);
+}
+
+.btn-import:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.import-error {
+  background: rgba(244, 67, 54, 0.1);
+  color: var(--danger);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
 }
 
 .empty-state {

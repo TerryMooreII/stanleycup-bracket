@@ -1,12 +1,18 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { nhlUrl } from '../lib/nhlApi'
+import { useBracketStore } from './bracket'
 
 function getCurrentSeason() {
+  const bracket = useBracketStore()
+  if (bracket.season?.year) {
+    const y = bracket.season.year
+    return `${y}${y + 1}`
+  }
+  // Fallback: compute from current date
   const now = new Date()
   const year = now.getFullYear()
   const month = now.getMonth() + 1
-  // NHL season spans two calendar years; if before September, season started previous year
   const startYear = month >= 9 ? year : year - 1
   return `${startYear}${startYear + 1}`
 }
