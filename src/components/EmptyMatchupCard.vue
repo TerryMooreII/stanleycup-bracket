@@ -20,7 +20,7 @@ function getShieldUrl() {
   border: 1px solid var(--border);
   border-radius: 8px;
   width: 200px;
-  height: 131px;
+  height: 114px;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -4,9 +4,23 @@ import { useAuthStore } from '../stores/auth'
 import { useBracketStore } from '../stores/bracket'
 import MatchupCard from '../components/MatchupCard.vue'
 import EmptyMatchupCard from '../components/EmptyMatchupCard.vue'
+import MatchupResearchModal from '../components/MatchupResearchModal.vue'
 
 const auth = useAuthStore()
 const bracket = useBracketStore()
+
+// Research modal state
+const showResearch = ref(false)
+const researchMatchup = ref(null)
+
+function handleResearch(matchup) {
+  researchMatchup.value = matchup
+  showResearch.value = true
+}
+
+function closeResearch() {
+  showResearch.value = false
+}
 
 // Tiebreaker state for the final round
 const showTiebreaker = ref(false)
@@ -171,6 +185,7 @@ function getRoundLabel(roundNumber) {
                   :pick="bracket.getPickForMatchup(matchup.id)"
                   :can-pick="canPickRound(1)"
                   @pick="handlePick"
+                  @research="handleResearch"
                 />
               </template>
               <EmptyMatchupCard
@@ -190,6 +205,7 @@ function getRoundLabel(roundNumber) {
                   :pick="bracket.getPickForMatchup(matchup.id)"
                   :can-pick="canPickRound(2)"
                   @pick="handlePick"
+                  @research="handleResearch"
                 />
               </template>
               <EmptyMatchupCard
@@ -210,6 +226,7 @@ function getRoundLabel(roundNumber) {
                   :pick="bracket.getPickForMatchup(matchup.id)"
                   :can-pick="canPickRound(3)"
                   @pick="handlePick"
+                  @research="handleResearch"
                 />
               </template>
               <EmptyMatchupCard
@@ -247,6 +264,7 @@ function getRoundLabel(roundNumber) {
                   :pick="bracket.getPickForMatchup(matchup.id)"
                   :can-pick="canPickRound(3)"
                   @pick="handlePick"
+                  @research="handleResearch"
                 />
               </template>
               <EmptyMatchupCard
@@ -265,6 +283,7 @@ function getRoundLabel(roundNumber) {
                   :pick="bracket.getPickForMatchup(matchup.id)"
                   :can-pick="canPickRound(2)"
                   @pick="handlePick"
+                  @research="handleResearch"
                 />
               </template>
               <EmptyMatchupCard
@@ -284,6 +303,7 @@ function getRoundLabel(roundNumber) {
                   :pick="bracket.getPickForMatchup(matchup.id)"
                   :can-pick="canPickRound(1)"
                   @pick="handlePick"
+                  @research="handleResearch"
                 />
               </template>
               <EmptyMatchupCard
@@ -311,6 +331,7 @@ function getRoundLabel(roundNumber) {
                   :pick="bracket.getPickForMatchup(matchup.id)"
                   :can-pick="canPickRound(roundNum)"
                   @pick="handlePick"
+                  @research="handleResearch"
                 />
               </template>
               <EmptyMatchupCard
@@ -327,6 +348,7 @@ function getRoundLabel(roundNumber) {
                   :pick="bracket.getPickForMatchup(matchup.id)"
                   :can-pick="canPickRound(roundNum)"
                   @pick="handlePick"
+                  @research="handleResearch"
                 />
               </template>
               <EmptyMatchupCard
@@ -349,6 +371,13 @@ function getRoundLabel(roundNumber) {
           </div>
         </div>
       </div>
+      <!-- Research modal -->
+      <MatchupResearchModal
+        :matchup="researchMatchup"
+        :visible="showResearch"
+        @close="closeResearch"
+      />
+
       <!-- Tiebreaker modal -->
       <div v-if="showTiebreaker" class="modal-overlay" @click.self="cancelTiebreaker">
         <div class="modal">

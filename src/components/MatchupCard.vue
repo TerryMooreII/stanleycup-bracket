@@ -8,7 +8,7 @@ const props = defineProps({
   compact: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['pick'])
+const emit = defineEmits(['pick', 'research'])
 
 const homeSelected = computed(() => props.pick?.team_id === props.matchup.team_home_id)
 const awaySelected = computed(() => props.pick?.team_id === props.matchup.team_away_id)
@@ -28,6 +28,14 @@ function getLogoUrl(abbreviation) {
 
 <template>
   <div class="matchup-card" :class="{ compact }">
+    <button
+      v-if="canPick && matchup.team_home && matchup.team_away"
+      class="research-btn"
+      @click.stop="emit('research', matchup)"
+      title="Research matchup"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="research-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
     <div
       class="team-row"
       :class="{
@@ -85,9 +93,39 @@ function getLogoUrl(abbreviation) {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
   width: 200px;
   flex-shrink: 0;
+  position: relative;
+}
+
+.research-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 10;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.research-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.research-icon {
+  width: 12px;
+  height: 12px;
 }
 
 .matchup-card.compact {
@@ -98,7 +136,7 @@ function getLogoUrl(abbreviation) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 13px 8px 2px;
+  padding: 0px 13px 0px 2px;
   transition: all 0.2s;
   border-left: 3px solid transparent;
 }

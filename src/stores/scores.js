@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { nhlUrl } from '../lib/nhlApi'
 
 function getDateStrings() {
   const now = new Date()
@@ -95,11 +96,6 @@ function normalizeScheduleGame(game, dayLabel) {
     clock: null,
     startTimeLocal: formatStartTime(game.startTimeUTC)
   }
-}
-
-function nhlUrl(path) {
-  const raw = `https://api-web.nhle.com${path}`
-  return `https://iajs-cors.rchrd2.workers.dev/${raw}`
 }
 
 export const useScoresStore = defineStore('scores', () => {
