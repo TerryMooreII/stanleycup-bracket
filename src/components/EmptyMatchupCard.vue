@@ -1,0 +1,41 @@
+<script setup>
+defineProps({
+  compact: { type: Boolean, default: false }
+})
+
+function getShieldUrl() {
+  return 'https://assets.nhle.com/logos/nhl/svg/NHL_dark.svg'
+}
+</script>
+
+<template>
+  <div class="empty-matchup" :class="{ compact }">
+    <img :src="getShieldUrl()" alt="TBD" class="shield" @error="$event.target.style.display='none'" />
+  </div>
+</template>
+
+<style scoped>
+.empty-matchup {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 200px;
+  height: 131px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.empty-matchup.compact {
+  width: 170px;
+  height: 131px;
+}
+
+.shield {
+  width: 36px;
+  height: 36px;
+  opacity: 0.4;
+}
+</style>
