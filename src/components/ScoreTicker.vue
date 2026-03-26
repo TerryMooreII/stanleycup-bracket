@@ -1,9 +1,22 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useScoresStore } from '../stores/scores'
+import GameDetailModal from './GameDetailModal.vue'
 
 const scores = useScoresStore()
 const trackRef = ref(null)
+const selectedGameId = ref(null)
+const showGameDetail = ref(false)
+
+function openGame(game) {
+  if (game.status === 'FUT') return
+  selectedGameId.value = game.id
+  showGameDetail.value = true
+}
+
+function closeGame() {
+  showGameDetail.value = false
+}
 
 const sections = computed(() => [
   { label: 'YESTERDAY', games: scores.yesterdayGames },
@@ -42,7 +55,7 @@ onUnmounted(() => scores.stopPolling())
         <template v-for="section in sections" :key="section.label">
           <div class="day-separator">{{ section.label }}</div>
           <div v-if="section.games.length === 0" class="no-games">No games</div>
-          <div v-for="game in section.games" :key="game.id" class="game-item">
+          <div v-for="game in section.games" :key="game.id" class="game-item" :class="{ clickable: game.status !== 'FUT' }" @click="openGame(game)">
             <div class="game-teams">
               <div class="team-line">
                 <img :src="game.awayTeam.logo" class="ticker-logo" :alt="game.awayTeam.abbrev" loading="lazy" />
@@ -72,6 +85,12 @@ onUnmounted(() => scores.stopPolling())
 
       <button class="arrow arrow-right" @click="scrollRight" aria-label="Scroll right">&rsaquo;</button>
     </div>
+
+    <GameDetailModal
+      :game-id="selectedGameId"
+      :visible="showGameDetail"
+      @close="closeGame"
+    />
   </div>
 </template>
 
@@ -210,6 +229,15 @@ onUnmounted(() => scores.stopPolling())
   border-left: 1px solid var(--border);
   height: 52px;
   flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.game-item.clickable {
+  cursor: pointer;
+}
+
+.game-item.clickable:hover {
+  background: var(--bg-card);
 }
 
 .game-teams {
