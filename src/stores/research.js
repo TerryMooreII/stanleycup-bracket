@@ -147,28 +147,35 @@ export const useResearchStore = defineStore('research', () => {
       const awayLast10 = getLast10(awaySched, awayAbbrev)
 
       // Standings info
+      function extractStanding(teamData) {
+        if (!teamData) return null
+        const t = teamData
+        return {
+          record: `${t.wins}-${t.losses}-${t.otLosses}`,
+          points: t.points,
+          pointPct: t.pointPctg ? (t.pointPctg * 100).toFixed(1) + '%' : '',
+          homeRecord: `${t.homeWins}-${t.homeLosses}-${t.homeOtLosses}`,
+          roadRecord: `${t.roadWins}-${t.roadLosses}-${t.roadOtLosses}`,
+          goalsFor: t.goalFor,
+          goalsAgainst: t.goalAgainst,
+          goalDifferential: t.goalDifferential,
+          l10Record: `${t.l10Wins}-${t.l10Losses}-${t.l10OtLosses}`,
+          streak: `${t.streakCode || ''}${t.streakCount || 0}`,
+          leagueRank: t.leagueSequence,
+          conferenceRank: t.conferenceSequence,
+          divisionRank: t.divisionSequence,
+          divisionName: t.divisionAbbrev
+        }
+      }
+
       let homeStanding = null, awayStanding = null
       if (standings?.standings) {
         for (const team of standings.standings) {
           if (team.teamAbbrev?.default === homeAbbrev) {
-            homeStanding = {
-              wins: team.wins,
-              losses: team.losses,
-              otl: team.otLosses,
-              points: team.points,
-              record: `${team.wins}-${team.losses}-${team.otLosses}`,
-              pointPct: team.pointPctg ? (team.pointPctg * 100).toFixed(1) + '%' : ''
-            }
+            homeStanding = extractStanding(team)
           }
           if (team.teamAbbrev?.default === awayAbbrev) {
-            awayStanding = {
-              wins: team.wins,
-              losses: team.losses,
-              otl: team.otLosses,
-              points: team.points,
-              record: `${team.wins}-${team.losses}-${team.otLosses}`,
-              pointPct: team.pointPctg ? (team.pointPctg * 100).toFixed(1) + '%' : ''
-            }
+            awayStanding = extractStanding(team)
           }
         }
       }

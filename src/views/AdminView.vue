@@ -185,7 +185,8 @@ async function addMatchup() {
 }
 
 async function setWinner(matchup, teamId) {
-  await bracket.updateMatchup(matchup.id, { winner_id: teamId })
+  const newWinner = matchup.winner_id === teamId ? null : teamId
+  await bracket.updateMatchup(matchup.id, { winner_id: newWinner })
 }
 
 async function updateActualGoals(matchup, value) {

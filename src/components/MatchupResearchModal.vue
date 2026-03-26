@@ -34,18 +34,32 @@ watch(() => props.visible, async (show) => {
       <div v-if="matchup" class="modal-header">
         <div class="header-team">
           <img :src="getLogoUrl(matchup.team_home.abbreviation)" :alt="matchup.team_home.abbreviation" class="header-logo" />
-          <div class="header-team-info">
-            <span class="header-abbrev">{{ matchup.team_home.abbreviation }}</span>
-            <span v-if="data?.homeStanding" class="header-record">{{ data.homeStanding.record }} ({{ data.homeStanding.points }} pts)</span>
-          </div>
+          <span class="header-abbrev">{{ matchup.team_home.abbreviation }}</span>
         </div>
         <span class="header-vs">VS</span>
         <div class="header-team">
           <img :src="getLogoUrl(matchup.team_away.abbreviation)" :alt="matchup.team_away.abbreviation" class="header-logo" />
-          <div class="header-team-info">
-            <span class="header-abbrev">{{ matchup.team_away.abbreviation }}</span>
-            <span v-if="data?.awayStanding" class="header-record">{{ data.awayStanding.record }} ({{ data.awayStanding.points }} pts)</span>
-          </div>
+          <span class="header-abbrev">{{ matchup.team_away.abbreviation }}</span>
+        </div>
+      </div>
+
+      <!-- Standings comparison -->
+      <div v-if="data?.homeStanding && data?.awayStanding" class="standings-compare">
+        <div class="compare-row" v-for="stat in [
+          { label: 'Record', home: data.homeStanding.record + ' (' + data.homeStanding.points + ' pts)', away: data.awayStanding.record + ' (' + data.awayStanding.points + ' pts)' },
+          { label: 'Home', home: data.homeStanding.homeRecord, away: data.awayStanding.homeRecord },
+          { label: 'Road', home: data.homeStanding.roadRecord, away: data.awayStanding.roadRecord },
+          { label: 'GF/GA', home: data.homeStanding.goalsFor + '/' + data.homeStanding.goalsAgainst, away: data.awayStanding.goalsFor + '/' + data.awayStanding.goalsAgainst },
+          { label: 'Diff', home: data.homeStanding.goalDifferential, away: data.awayStanding.goalDifferential, highlight: true },
+          { label: 'L10', home: data.homeStanding.l10Record, away: data.awayStanding.l10Record },
+          { label: 'Streak', home: data.homeStanding.streak, away: data.awayStanding.streak },
+          { label: 'League', home: '#' + data.homeStanding.leagueRank, away: '#' + data.awayStanding.leagueRank },
+          { label: 'Conf', home: '#' + data.homeStanding.conferenceRank, away: '#' + data.awayStanding.conferenceRank },
+          { label: 'Div', home: data.homeStanding.divisionName + ' #' + data.homeStanding.divisionRank, away: data.awayStanding.divisionName + ' #' + data.awayStanding.divisionRank }
+        ]" :key="stat.label" >
+          <span class="compare-val compare-home" :class="{ positive: stat.highlight && Number(stat.home) > 0, negative: stat.highlight && Number(stat.home) < 0 }">{{ stat.home }}</span>
+          <span class="compare-label">{{ stat.label }}</span>
+          <span class="compare-val compare-away" :class="{ positive: stat.highlight && Number(stat.away) > 0, negative: stat.highlight && Number(stat.away) < 0 }">{{ stat.away }}</span>
         </div>
       </div>
 
@@ -97,7 +111,6 @@ watch(() => props.visible, async (show) => {
                 <img :src="getLogoUrl(team.abbrev)" :alt="team.abbrev" class="last10-logo" />
                 <span class="last10-abbrev">{{ team.abbrev }}</span>
                 <span class="last10-record">{{ team.data.record }}</span>
-                <span class="last10-streak">{{ team.data.streak }}</span>
               </div>
               <div class="last10-games">
                 <div v-for="game in team.data.games" :key="game.date + game.opponent" class="last10-row">
@@ -163,9 +176,7 @@ watch(() => props.visible, async (show) => {
   align-items: center;
   justify-content: center;
   gap: 20px;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
 }
 
 .header-team {
@@ -180,20 +191,10 @@ watch(() => props.visible, async (show) => {
   object-fit: contain;
 }
 
-.header-team-info {
-  display: flex;
-  flex-direction: column;
-}
-
 .header-abbrev {
   font-weight: 700;
   font-size: 1.1rem;
   color: var(--text-primary);
-}
-
-.header-record {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
 }
 
 .header-vs {
@@ -201,6 +202,61 @@ watch(() => props.visible, async (show) => {
   font-size: 0.8rem;
   color: var(--text-muted);
   letter-spacing: 2px;
+}
+
+/* Standings Comparison */
+.standings-compare {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 20px;
+}
+
+.compare-row {
+  display: flex;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.compare-row:last-child {
+  border-bottom: none;
+}
+
+.compare-label {
+  flex: 0 0 60px;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.compare-val {
+  flex: 1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.compare-home {
+  text-align: right;
+  padding-right: 12px;
+}
+
+.compare-away {
+  text-align: left;
+  padding-left: 12px;
+}
+
+.compare-val.positive {
+  color: var(--success);
+}
+
+.compare-val.negative {
+  color: var(--danger);
 }
 
 /* Loading / Error */
@@ -371,14 +427,6 @@ watch(() => props.visible, async (show) => {
   margin-left: auto;
 }
 
-.last10-streak {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--accent);
-  background: var(--bg-card);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
 
 .last10-games {
   font-size: 0.75rem;
