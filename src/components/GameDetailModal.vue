@@ -1,6 +1,14 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { nhlUrl } from '../lib/nhlApi'
+import { useBracketStore } from '../stores/bracket'
+
+const bracket = useBracketStore()
+
+function getTeamColor(abbrev) {
+  const team = bracket.teams.find(t => t.abbreviation === abbrev)
+  return team?.primary_color || null
+}
 
 const props = defineProps({
   gameId: { type: Number, default: null },
@@ -53,13 +61,15 @@ async function fetchGameData(id) {
         abbrev: source.awayTeam?.abbrev || '',
         logo: source.awayTeam?.darkLogo || source.awayTeam?.logo || '',
         score: source.awayTeam?.score ?? 0,
-        sog: source.awayTeam?.sog ?? null
+        sog: source.awayTeam?.sog ?? null,
+        color: getTeamColor(source.awayTeam?.abbrev) || '#999999'
       },
       homeTeam: {
         abbrev: source.homeTeam?.abbrev || '',
         logo: source.homeTeam?.darkLogo || source.homeTeam?.logo || '',
         score: source.homeTeam?.score ?? 0,
-        sog: source.homeTeam?.sog ?? null
+        sog: source.homeTeam?.sog ?? null,
+        color: getTeamColor(source.homeTeam?.abbrev) || '#999999'
       },
       status: isFinal ? 'FINAL' : 'LIVE',
       statusLabel: isFinal
@@ -237,7 +247,8 @@ watch(() => props.visible, (show) => {
         <div v-if="data.awayTeam.sog != null && data.homeTeam.sog != null" class="sog-bar">
           <span class="sog-val">{{ data.awayTeam.sog }}</span>
           <div class="sog-track">
-            <div class="sog-fill" :style="{ width: (data.awayTeam.sog / Math.max(data.awayTeam.sog + data.homeTeam.sog, 1) * 100) + '%' }"></div>
+            <div class="sog-fill sog-away" :style="{ width: (data.awayTeam.sog / Math.max(data.awayTeam.sog + data.homeTeam.sog, 1) * 100) + '%', background: data.awayTeam.color }"></div>
+            <div class="sog-fill sog-home" :style="{ width: (data.homeTeam.sog / Math.max(data.awayTeam.sog + data.homeTeam.sog, 1) * 100) + '%', background: data.homeTeam.color }"></div>
           </div>
           <span class="sog-val">{{ data.homeTeam.sog }}</span>
           <span class="sog-label">SOG</span>
@@ -481,17 +492,24 @@ watch(() => props.visible, (show) => {
 
 .sog-track {
   flex: 1;
-  height: 6px;
+  height: 8px;
   background: var(--border);
-  border-radius: 3px;
+  border-radius: 4px;
   overflow: hidden;
+  display: flex;
 }
 
 .sog-fill {
   height: 100%;
-  background: var(--accent);
-  border-radius: 3px;
   transition: width 0.3s;
+}
+
+.sog-away {
+  border-radius: 4px 0 0 4px;
+}
+
+.sog-home {
+  border-radius: 0 4px 4px 0;
 }
 
 .sog-label {
