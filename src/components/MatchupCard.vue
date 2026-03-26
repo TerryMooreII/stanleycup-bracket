@@ -98,7 +98,7 @@ function getLogoUrl(abbreviation) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 8px;
+  padding: 4px 13px 8px 2px;
   transition: all 0.2s;
   border-left: 3px solid transparent;
 }
