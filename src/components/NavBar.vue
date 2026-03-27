@@ -68,11 +68,11 @@ async function handleSignOut() {
       </button>
 
       <div class="nav-links" :class="{ open: menuOpen }">
-        <router-link :to="yearLink('bracket')" @click="menuOpen = false">Bracket</router-link>
-        <router-link :to="yearLink('picks')" @click="menuOpen = false">Picks</router-link>
-        <router-link :to="yearLink('leaderboard')" @click="menuOpen = false">Leaderboard</router-link>
-        <router-link to="/history" @click="menuOpen = false">History</router-link>
         <template v-if="auth.isLoggedIn">
+          <router-link :to="yearLink('bracket')" @click="menuOpen = false">Bracket</router-link>
+          <router-link :to="yearLink('picks')" @click="menuOpen = false">Picks</router-link>
+          <router-link :to="yearLink('leaderboard')" @click="menuOpen = false">Leaderboard</router-link>
+          <router-link to="/history" @click="menuOpen = false">History</router-link>
           <router-link v-if="auth.isAdmin" to="/admin" @click="menuOpen = false">Admin</router-link>
           <router-link to="/profile" class="nav-user" @click="menuOpen = false">{{ auth.profile?.display_name }}</router-link>
           <button class="btn-signout" @click="handleSignOut">Sign Out</button>

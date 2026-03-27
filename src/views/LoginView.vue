@@ -58,7 +58,7 @@ async function handleLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 100px);
+  height: calc(100vh - 60px - 72px - 40px);
 }
 
 .auth-card {
