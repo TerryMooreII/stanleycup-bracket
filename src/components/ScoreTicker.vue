@@ -109,7 +109,8 @@ onUnmounted(() => scores.stopPolling())
 .ticker-toggle {
   position: absolute;
   bottom: 100%;
-  right: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -311,9 +312,6 @@ onUnmounted(() => scores.stopPolling())
 }
 
 @media (max-width: 768px) {
-  .ticker-toggle {
-    right: 10px;
-  }
   .game-item {
     padding: 4px 10px;
   }
