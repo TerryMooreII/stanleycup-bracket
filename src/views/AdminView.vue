@@ -3,6 +3,7 @@ import { onMounted, ref, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useBracketStore } from '../stores/bracket'
 import { nhlUrl } from '../lib/nhlApi'
+import { getLogoUrl } from '../lib/logos'
 
 const auth = useAuthStore()
 const bracket = useBracketStore()
@@ -299,9 +300,6 @@ function formatDeadline(dateStr) {
   })
 }
 
-function getLogoUrl(abbr) {
-  return `https://assets.nhle.com/logos/nhl/svg/${abbr}_dark.svg`
-}
 </script>
 
 <template>

@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { getLogoUrl } from '../lib/logos'
 
 const props = defineProps({
   matchup: { type: Object, required: true },
@@ -24,9 +25,6 @@ function selectTeam(teamId) {
   }
 }
 
-function getLogoUrl(abbreviation) {
-  return `https://assets.nhle.com/logos/nhl/svg/${abbreviation}_dark.svg`
-}
 </script>
 
 <template>

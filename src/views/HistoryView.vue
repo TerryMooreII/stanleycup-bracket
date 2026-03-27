@@ -2,6 +2,7 @@
 import { onMounted, ref, computed, watch } from 'vue'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores/auth'
+import { getLogoUrl } from '../lib/logos'
 
 const auth = useAuthStore()
 
@@ -108,9 +109,6 @@ function getPickTeam(pick, matchup) {
   return null
 }
 
-function getLogoUrl(abbr) {
-  return `https://assets.nhle.com/logos/nhl/svg/${abbr}_dark.svg`
-}
 
 function getMatchupsForRound(roundId) {
   return matchups.value.filter(m => m.round_id === roundId)

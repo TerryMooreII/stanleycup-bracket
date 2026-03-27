@@ -2,6 +2,7 @@
 import { onMounted, ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { supabase } from '../lib/supabase'
+import { getLogoUrl } from '../lib/logos'
 
 const route = useRoute()
 const selectedRound = ref(1)
@@ -86,9 +87,6 @@ function getUsersForTeam(matchupId, teamId) {
   }).sort()
 }
 
-function getLogoUrl(abbreviation) {
-  return `https://assets.nhle.com/logos/nhl/svg/${abbreviation}_dark.svg`
-}
 
 function getRoundLabel(num) {
   if (num === 1) return 'R1'

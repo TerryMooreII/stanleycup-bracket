@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useResearchStore } from '../stores/research'
+import { getLogoUrl } from '../lib/logos'
 
 const props = defineProps({
   matchup: { type: Object, default: null },
@@ -11,10 +12,6 @@ const emit = defineEmits(['close'])
 
 const research = useResearchStore()
 const data = ref(null)
-
-function getLogoUrl(abbreviation) {
-  return `https://assets.nhle.com/logos/nhl/svg/${abbreviation}_dark.svg`
-}
 
 watch(() => props.visible, async (show) => {
   if (show && props.matchup) {

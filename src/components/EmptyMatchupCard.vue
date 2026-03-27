@@ -1,11 +1,13 @@
 <script setup>
+import { getLogoUrl } from '../lib/logos'
+
 const props = defineProps({
   compact: { type: Boolean, default: false },
   logo: { type: String, default: '' }
 })
 
 function getShieldUrl() {
-  return props.logo || 'https://assets.nhle.com/logos/nhl/svg/NHL_dark.svg'
+  return props.logo || getLogoUrl('NHL')
 }
 </script>
 

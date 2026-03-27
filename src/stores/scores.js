@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { nhlUrl } from '../lib/nhlApi'
+import { getLogoUrl } from '../lib/logos'
 
 function getDateStrings() {
   const now = new Date()
@@ -63,12 +64,12 @@ function normalizeGame(game, dayLabel) {
     status,
     awayTeam: {
       abbrev: game.awayTeam?.abbrev || '',
-      logo: game.awayTeam?.logo.replace('_light', '_dark'),
+      logo: getLogoUrl(game.awayTeam?.abbrev),
       score: game.awayTeam?.score ?? null
     },
     homeTeam: {
       abbrev: game.homeTeam?.abbrev || '',
-      logo: game.homeTeam?.logo.replace('_light', '_dark'),
+      logo: getLogoUrl(game.homeTeam?.abbrev),
       score: game.homeTeam?.score ?? null
     },
     periodDescriptor: normalizePeriod(game),
@@ -85,12 +86,12 @@ function normalizeScheduleGame(game, dayLabel) {
     status: 'FUT',
     awayTeam: {
       abbrev: game.awayTeam?.abbrev || '',
-      logo: game.awayTeam?.logo.replace('_light', '_dark'),
+      logo: getLogoUrl(game.awayTeam?.abbrev),
       score: null
     },
     homeTeam: {
       abbrev: game.homeTeam?.abbrev || '',
-      logo: game.homeTeam?.logo.replace('_light', '_dark'),
+      logo: getLogoUrl(game.homeTeam?.abbrev),
       score: null
     },
     periodDescriptor: null,

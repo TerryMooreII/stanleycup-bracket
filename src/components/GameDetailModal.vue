@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { nhlUrl } from '../lib/nhlApi'
 import { useBracketStore } from '../stores/bracket'
+import { getLogoUrl } from '../lib/logos'
 
 const bracket = useBracketStore()
 
@@ -59,14 +60,14 @@ async function fetchGameData(id) {
     const result = {
       awayTeam: {
         abbrev: source.awayTeam?.abbrev || '',
-        logo: source.awayTeam?.darkLogo || source.awayTeam?.logo || '',
+        logo: getLogoUrl(source.awayTeam?.abbrev),
         score: source.awayTeam?.score ?? 0,
         sog: source.awayTeam?.sog ?? null,
         color: getTeamColor(source.awayTeam?.abbrev) || '#999999'
       },
       homeTeam: {
         abbrev: source.homeTeam?.abbrev || '',
-        logo: source.homeTeam?.darkLogo || source.homeTeam?.logo || '',
+        logo: getLogoUrl(source.homeTeam?.abbrev),
         score: source.homeTeam?.score ?? 0,
         sog: source.homeTeam?.sog ?? null,
         color: getTeamColor(source.homeTeam?.abbrev) || '#999999'
