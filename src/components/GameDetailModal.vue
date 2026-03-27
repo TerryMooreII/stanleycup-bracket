@@ -72,9 +72,12 @@ async function fetchGameData(id) {
         color: getTeamColor(source.homeTeam?.abbrev) || '#999999'
       },
       status: isFinal ? 'FINAL' : 'LIVE',
+      inIntermission: source.clock?.inIntermission || false,
       statusLabel: isFinal
         ? (periodType === 'OT' ? 'Final/OT' : periodType === 'SO' ? 'Final/SO' : 'Final')
-        : `${source.periodDescriptor?.number || ''}${ordinal(source.periodDescriptor?.number)} - ${source.clock?.timeRemaining || ''}`,
+        : source.clock?.inIntermission
+          ? `${source.periodDescriptor?.number || ''}${ordinal(source.periodDescriptor?.number)} INT - ${source.clock?.timeRemaining || ''}`
+          : `${source.periodDescriptor?.number || ''}${ordinal(source.periodDescriptor?.number)} - ${source.clock?.timeRemaining || ''}`,
       gameDate: source.gameDate || '',
       venue: source.venue?.default || '',
       scoring: [],
