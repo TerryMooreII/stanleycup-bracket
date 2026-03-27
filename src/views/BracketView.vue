@@ -11,6 +11,9 @@ const auth = useAuthStore()
 const bracket = useBracketStore()
 const route = useRoute()
 
+// Help modal
+const showHelp = ref(false)
+
 // Research modal state
 const showResearch = ref(false)
 const researchMatchup = ref(null)
@@ -176,6 +179,40 @@ function getRoundLabel(roundNumber) {
 
       <div v-if="!auth.isLoggedIn" class="login-prompt">
         <router-link to="/login">Sign in</router-link> to make your picks!
+      </div>
+
+      <button class="help-btn" @click="showHelp = true" title="Pick legend">?</button>
+
+      <!-- Help modal -->
+      <div v-if="showHelp" class="help-overlay" @click.self="showHelp = false">
+        <div class="help-modal">
+          <button class="help-close" @click="showHelp = false">&times;</button>
+          <h3 class="help-title">Pick Legend</h3>
+
+          <div class="help-example">
+            <div class="help-label">Your pick (no result yet)</div>
+            <div class="help-matchup">
+              <div class="help-team selected-example">COL</div>
+              <div class="help-team">NSH</div>
+            </div>
+          </div>
+
+          <div class="help-example">
+            <div class="help-label">Correct pick</div>
+            <div class="help-matchup">
+              <div class="help-team correct-example">COL</div>
+              <div class="help-team loser-example">NSH</div>
+            </div>
+          </div>
+
+          <div class="help-example">
+            <div class="help-label">Wrong pick</div>
+            <div class="help-matchup">
+              <div class="help-team wrong-example">COL</div>
+              <div class="help-team winner-example">NSH</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Desktop bracket layout -->
@@ -470,6 +507,130 @@ function getRoundLabel(roundNumber) {
   border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 700;
+}
+
+/* Help button */
+.help-btn {
+  position: fixed;
+  bottom: 70px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, border-color 0.2s;
+  font-family: inherit;
+}
+
+.help-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+/* Help modal */
+.help-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.help-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  width: 280px;
+  position: relative;
+}
+
+.help-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.help-close:hover {
+  color: var(--text-primary);
+}
+
+.help-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.help-example {
+  margin-bottom: 14px;
+}
+
+.help-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.help-matchup {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.help-team {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  border-left: 3px solid transparent;
+}
+
+.help-team + .help-team {
+  border-top: 1px solid var(--border);
+}
+
+.help-team.selected-example {
+  background: rgba(66, 165, 245, 0.15);
+  border-left-color: #42a5f5;
+}
+
+.help-team.correct-example {
+  background: rgba(76, 175, 80, 0.15);
+  border-left-color: #42a5f5;
+}
+
+.help-team.wrong-example {
+  background: rgba(244, 67, 54, 0.15);
+  border-left-color: #42a5f5;
+}
+
+.help-team.winner-example {
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.help-team.loser-example {
+  opacity: 0.5;
 }
 
 /* Desktop bracket */

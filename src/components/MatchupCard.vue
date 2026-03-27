@@ -14,6 +14,9 @@ const homeSelected = computed(() => props.pick?.team_id === props.matchup.team_h
 const awaySelected = computed(() => props.pick?.team_id === props.matchup.team_away_id)
 const homeWon = computed(() => props.matchup.winner_id === props.matchup.team_home_id)
 const awayWon = computed(() => props.matchup.winner_id === props.matchup.team_away_id)
+const hasWinner = computed(() => props.matchup.winner_id != null)
+const homeWrongPick = computed(() => homeSelected.value && hasWinner.value && !homeWon.value)
+const awayWrongPick = computed(() => awaySelected.value && hasWinner.value && !awayWon.value)
 
 function selectTeam(teamId) {
   if (props.canPick) {
@@ -40,6 +43,7 @@ function getLogoUrl(abbreviation) {
       class="team-row"
       :class="{
         selected: homeSelected,
+        'wrong-pick': homeWrongPick,
         winner: homeWon,
         loser: awayWon && !homeWon,
         pickable: canPick
@@ -65,6 +69,7 @@ function getLogoUrl(abbreviation) {
       class="team-row"
       :class="{
         selected: awaySelected,
+        'wrong-pick': awayWrongPick,
         winner: awayWon,
         loser: homeWon && !awayWon,
         pickable: canPick
@@ -154,8 +159,18 @@ function getLogoUrl(abbreviation) {
 }
 
 .team-row.selected {
+  background: rgba(66, 165, 245, 0.15);
+  border-left-color: #42a5f5;
+}
+
+.team-row.selected.winner {
   background: rgba(76, 175, 80, 0.15);
-  border-left-color: var(--picked-border);
+  border-left-color: #42a5f5;
+}
+
+.team-row.selected.wrong-pick {
+  background: rgba(244, 67, 54, 0.15);
+  border-left-color: #42a5f5;
 }
 
 .team-row.winner {
