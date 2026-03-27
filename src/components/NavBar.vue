@@ -9,7 +9,7 @@ const bracket = useBracketStore()
 
 const cupLogoUrl = computed(() => {
   const year = bracket.season?.year
-  if (year) return `https://assets.nhle.com/logos/playoffs/png/scp-${year}${year + 1}-cup.png`
+  if (year) return `https://assets.nhle.com/logos/playoffs/png/scp-${year - 1}${year}-cup.png`
   return 'https://assets.nhle.com/logos/playoffs/png/scp-20252026-cup.png'
 })
 const router = useRouter()

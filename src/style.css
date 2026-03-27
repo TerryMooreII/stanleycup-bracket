@@ -55,6 +55,40 @@ button {
   outline: none;
 }
 
+/* Style number input spinners for dark theme */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+/* Re-enable custom styled spinners */
+input[type="number"] {
+  position: relative;
+  -moz-appearance: textfield;
+}
+
+/* Restore spinners with dark theme colors via a wrapper approach */
+input[type="number"]:hover,
+input[type="number"]:focus {
+  -moz-appearance: auto;
+}
+
+input[type="number"]:hover::-webkit-inner-spin-button,
+input[type="number"]:focus::-webkit-inner-spin-button {
+  -webkit-appearance: inner-spin-button;
+  appearance: auto;
+  opacity: 1;
+  height: 100%;
+  cursor: pointer;
+  filter: invert(0.8);
+}
+
 input, select {
   font-family: inherit;
   font-size: inherit;
