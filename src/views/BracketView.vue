@@ -243,19 +243,20 @@ function getRoundLabel(roundNumber) {
           </div>
         </div>
 
-        <!-- Stanley Cup Center -->
+        <!-- Stanley Cup Final -->
         <div class="cup-center">
+          <div class="scf-label">STANLEY CUP<br/><span>FINAL</span></div>
           <div v-if="getRoundMatchups(4, 'Western').length > 0 || getRoundMatchups(4, 'Eastern').length > 0" class="final-matchup">
             <template v-for="matchup in [...getRoundMatchups(4, 'Western'), ...getRoundMatchups(4, 'Eastern')]" :key="matchup.id">
               <MatchupCard
                 :matchup="matchup"
                 :pick="bracket.getPickForMatchup(matchup.id)"
                 :can-pick="canPickRound(4)"
-                compact
                 @pick="handlePick"
               />
             </template>
           </div>
+          <EmptyMatchupCard v-else :logo="`https://assets.nhle.com/logos/playoffs/png/scp-${(bracket.season?.year || 2026) - 1}${bracket.season?.year || 2026}-cup.png`" />
         </div>
 
         <!-- Eastern Conference -->
@@ -551,12 +552,28 @@ function getRoundLabel(roundNumber) {
 
 /* Cup center */
 .cup-center {
-  width: 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: end;
   flex-shrink: 0;
+  margin-bottom: 110px
+}
+
+.scf-label {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--text-primary);
+  text-align: center;
+  line-height: 1.3;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.scf-label span {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  letter-spacing: 2px;
 }
 
 .cup-trophy {

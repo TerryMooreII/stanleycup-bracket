@@ -204,11 +204,15 @@ const currentRound = computed(() => {
 })
 
 const conferenceTeams = computed(() => {
+  if (selectedRound.value === 4) return bracket.teams
   return bracket.teams.filter(t => t.conference === selectedConference.value)
 })
 
 const currentMatchups = computed(() => {
   if (!currentRound.value) return []
+  if (selectedRound.value === 4) {
+    return bracket.matchups.filter(m => m.round_id === currentRound.value.id)
+  }
   return bracket.getMatchupsForRound(currentRound.value.id, selectedConference.value)
 })
 

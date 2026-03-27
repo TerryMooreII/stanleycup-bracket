@@ -1,10 +1,11 @@
 <script setup>
-defineProps({
-  compact: { type: Boolean, default: false }
+const props = defineProps({
+  compact: { type: Boolean, default: false },
+  logo: { type: String, default: '' }
 })
 
 function getShieldUrl() {
-  return 'https://assets.nhle.com/logos/nhl/svg/NHL_dark.svg'
+  return props.logo || 'https://assets.nhle.com/logos/nhl/svg/NHL_dark.svg'
 }
 </script>
 

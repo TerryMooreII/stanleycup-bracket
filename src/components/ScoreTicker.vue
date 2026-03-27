@@ -232,6 +232,7 @@ onUnmounted(() => scores.stopPolling())
   height: 52px;
   flex-shrink: 0;
   transition: background 0.2s;
+  user-select: none;
 }
 
 .game-item.clickable {
