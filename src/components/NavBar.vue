@@ -15,9 +15,7 @@ const selectedYear = computed(() => {
   return y || bracket.activeSeason?.year || null
 })
 
-const cupLogoUrl = computed(() => {
-  return 'https://assets.nhle.com/logos/playoffs/png/scp-20252026-cup.png'
-})
+import cupLogo from '../assets/stanleycup.png'
 
 function seasonLabel(year) {
   return `${year - 1}-${String(year).slice(2)}`
@@ -51,7 +49,7 @@ async function handleSignOut() {
   <nav class="navbar">
     <div class="nav-content">
       <div class="nav-brand">
-        <img :src="cupLogoUrl" alt="Stanley Cup" class="nav-cup-logo" />
+        <img :src="cupLogo" alt="Stanley Cup" class="nav-cup-logo" />
         <select v-if="bracket.seasons.length > 0 && auth.isLoggedIn" class="season-select" :value="selectedYear" @change="onSeasonChange">
           <option v-for="s in bracket.seasons" :key="s.id" :value="s.year">
             {{ seasonLabel(s.year) }}{{ s.is_active ? ' *' : '' }}

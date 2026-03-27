@@ -6,6 +6,7 @@ import { useRoute } from 'vue-router'
 import MatchupCard from '../components/MatchupCard.vue'
 import EmptyMatchupCard from '../components/EmptyMatchupCard.vue'
 import MatchupResearchModal from '../components/MatchupResearchModal.vue'
+import cupLogo from '../assets/stanleycup.png'
 
 const auth = useAuthStore()
 const bracket = useBracketStore()
@@ -282,6 +283,7 @@ function getRoundLabel(roundNumber) {
 
         <!-- Stanley Cup Final -->
         <div class="cup-center">
+          <img :src="cupLogo" alt="Stanley Cup" class="scf-logo" />
           <div class="scf-label">STANLEY CUP<br/><span>FINAL</span></div>
           <div v-if="getRoundMatchups(4, 'Western').length > 0 || getRoundMatchups(4, 'Eastern').length > 0" class="final-matchup">
             <template v-for="matchup in [...getRoundMatchups(4, 'Western'), ...getRoundMatchups(4, 'Eastern')]" :key="matchup.id">
@@ -293,7 +295,7 @@ function getRoundLabel(roundNumber) {
               />
             </template>
           </div>
-          <EmptyMatchupCard v-else :logo="`https://assets.nhle.com/logos/playoffs/png/scp-${(bracket.season?.year || 2026) - 1}${bracket.season?.year || 2026}-cup.png`" />
+          <EmptyMatchupCard v-else :logo="cupLogo" />
         </div>
 
         <!-- Eastern Conference -->
@@ -719,6 +721,13 @@ function getRoundLabel(roundNumber) {
   justify-content: end;
   flex-shrink: 0;
   margin-bottom: 110px
+}
+
+.scf-logo {
+  width: 60px;
+  height: auto;
+  object-fit: contain;
+  margin-bottom: 8px;
 }
 
 .scf-label {
