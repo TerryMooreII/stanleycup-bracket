@@ -1,0 +1,18 @@
+{
+  "name": "Stanley Cup Bracket",
+  "short_name": "Cup Bracket",
+  "description": "Stanley Cup Playoff Bracket Prediction Game",
+  "start_url": "/stanleycup-bracket/",
+  "scope": "/stanleycup-bracket/",
+  "display": "standalone",
+  "theme_color": "#1c1c1c",
+  "background_color": "#1c1c1c",
+  "icons": [
+    {
+      "src": "/stanleycup-bracket/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
