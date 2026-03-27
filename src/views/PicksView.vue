@@ -1,7 +1,9 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { supabase } from '../lib/supabase'
 
+const route = useRoute()
 const selectedRound = ref(1)
 const rounds = ref([])
 const matchups = ref([])
@@ -9,10 +11,18 @@ const allPicks = ref([])
 const users = ref([])
 const loading = ref(true)
 
-onMounted(async () => {
+async function loadData() {
+  loading.value = true
   try {
-    const seasonRes = await supabase.from('seasons').select('*').eq('is_active', true).single()
-    const seasonId = seasonRes.data?.id
+    const year = Number(route.params.year)
+    let seasonId
+    if (year) {
+      const res = await supabase.from('seasons').select('*').eq('year', year).single()
+      seasonId = res.data?.id
+    } else {
+      const res = await supabase.from('seasons').select('*').eq('is_active', true).single()
+      seasonId = res.data?.id
+    }
 
     const [roundsRes, profilesRes] = await Promise.all([
       supabase.from('rounds').select('*').eq('season_id', seasonId).order('round_number'),
@@ -38,12 +48,16 @@ onMounted(async () => {
     // Default to first active or locked round
     const lockedRound = rounds.value.find(r => r.pick_deadline && new Date(r.pick_deadline) < new Date())
     if (lockedRound) selectedRound.value = lockedRound.round_number
+    else selectedRound.value = 1
   } catch (e) {
     console.error('Picks fetch error:', e)
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(loadData)
+watch(() => route.params.year, loadData)
 
 const currentRound = computed(() => rounds.value.find(r => r.round_number === selectedRound.value))
 

@@ -1,20 +1,46 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { supabase } from '../lib/supabase'
 
 export const useBracketStore = defineStore('bracket', () => {
   const season = ref(null)
+  const activeSeason = ref(null)
+  const seasons = ref([])
   const teams = ref([])
   const rounds = ref([])
   const matchups = ref([])
   const picks = ref([])
   const loading = ref(false)
 
+  const isViewingCurrentSeason = computed(() => {
+    if (!season.value || !activeSeason.value) return true
+    return season.value.id === activeSeason.value.id
+  })
+
+  async function fetchAllSeasons() {
+    const { data } = await supabase
+      .from('seasons')
+      .select('*')
+      .order('year', { ascending: false })
+    seasons.value = data || []
+    activeSeason.value = (data || []).find(s => s.is_active) || null
+  }
+
   async function fetchActiveSeason() {
     const { data } = await supabase
       .from('seasons')
       .select('*')
       .eq('is_active', true)
+      .single()
+    season.value = data
+    activeSeason.value = data
+  }
+
+  async function fetchSeasonByYear(year) {
+    const { data } = await supabase
+      .from('seasons')
+      .select('*')
+      .eq('year', year)
       .single()
     season.value = data
   }
@@ -50,17 +76,28 @@ export const useBracketStore = defineStore('bracket', () => {
 
   async function fetchPicks(userId) {
     if (!userId) return
+    const matchupIds = matchups.value.map(m => m.id)
+    if (matchupIds.length === 0) {
+      picks.value = []
+      return
+    }
     const { data } = await supabase
       .from('picks')
       .select('*')
       .eq('user_id', userId)
+      .in('matchup_id', matchupIds)
     picks.value = data || []
   }
 
-  async function fetchAll(userId) {
+  async function fetchAll(userId, year = null) {
     loading.value = true
     try {
-      await fetchActiveSeason()
+      if (seasons.value.length === 0) await fetchAllSeasons()
+      if (year) {
+        await fetchSeasonByYear(year)
+      } else {
+        await fetchActiveSeason()
+      }
       await Promise.all([fetchTeams(), fetchRounds()])
       await Promise.all([fetchMatchups(), fetchPicks(userId)])
     } catch (e) {
@@ -190,13 +227,16 @@ export const useBracketStore = defineStore('bracket', () => {
     if (rErr) throw rErr
     // Refresh store
     season.value = newSeason
-    await Promise.all([fetchRounds(), fetchMatchups(), fetchPicks(null)])
+    activeSeason.value = newSeason
+    await Promise.all([fetchAllSeasons(), fetchRounds(), fetchMatchups(), fetchPicks(null)])
     return newSeason
   }
 
   return {
-    season, teams, rounds, matchups, picks, loading,
-    fetchActiveSeason, fetchTeams, fetchRounds, fetchMatchups, fetchPicks, fetchAll,
+    season, activeSeason, seasons, teams, rounds, matchups, picks, loading,
+    isViewingCurrentSeason,
+    fetchAllSeasons, fetchActiveSeason, fetchSeasonByYear,
+    fetchTeams, fetchRounds, fetchMatchups, fetchPicks, fetchAll,
     makePick, getPickForMatchup, getMatchupsForRound, getActiveRound, isDeadlinePassed,
     createMatchup, updateMatchup, deleteMatchup, updateRound, createSeason
   }

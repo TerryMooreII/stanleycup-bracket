@@ -1,17 +1,27 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { supabase } from '../lib/supabase'
 
+const route = useRoute()
 const users = ref([])
 const allPicks = ref([])
 const matchups = ref([])
 const rounds = ref([])
 const loading = ref(true)
 
-onMounted(async () => {
+async function loadData() {
+  loading.value = true
   try {
-    const seasonRes = await supabase.from('seasons').select('*').eq('is_active', true).single()
-    const seasonId = seasonRes.data?.id
+    const year = Number(route.params.year)
+    let seasonId
+    if (year) {
+      const res = await supabase.from('seasons').select('*').eq('year', year).single()
+      seasonId = res.data?.id
+    } else {
+      const res = await supabase.from('seasons').select('*').eq('is_active', true).single()
+      seasonId = res.data?.id
+    }
 
     const [profilesRes, roundsRes] = await Promise.all([
       supabase.from('profiles').select('*'),
@@ -34,7 +44,10 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(loadData)
+watch(() => route.params.year, loadData)
 
 const roundPointsMap = computed(() => {
   const map = {}

@@ -1,13 +1,15 @@
 <script setup>
-import { onMounted, computed, ref } from 'vue'
+import { onMounted, computed, ref, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useBracketStore } from '../stores/bracket'
+import { useRoute } from 'vue-router'
 import MatchupCard from '../components/MatchupCard.vue'
 import EmptyMatchupCard from '../components/EmptyMatchupCard.vue'
 import MatchupResearchModal from '../components/MatchupResearchModal.vue'
 
 const auth = useAuthStore()
 const bracket = useBracketStore()
+const route = useRoute()
 
 // Research modal state
 const showResearch = ref(false)
@@ -44,9 +46,13 @@ async function fetchTakenGoals(matchupId) {
     .map(p => p.tiebreaker_goals)
 }
 
-onMounted(async () => {
-  await bracket.fetchAll(auth.user?.id)
-})
+async function loadSeason() {
+  const year = Number(route.params.year)
+  await bracket.fetchAll(auth.user?.id, year || null)
+}
+
+onMounted(loadSeason)
+watch(() => route.params.year, loadSeason)
 
 const rounds = computed(() => bracket.rounds)
 
@@ -66,6 +72,7 @@ function getExpectedMatchups(roundNumber) {
 
 function canPickRound(roundNumber) {
   if (!auth.isLoggedIn) return false
+  if (!bracket.isViewingCurrentSeason) return false
   const round = rounds.value.find(r => r.round_number === roundNumber)
   if (!round || !round.is_active) return false
   return !bracket.isDeadlinePassed(round.id)
