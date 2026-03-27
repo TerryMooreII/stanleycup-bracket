@@ -73,6 +73,7 @@ function normalizeGame(game, dayLabel) {
     },
     periodDescriptor: normalizePeriod(game),
     clock: game.clock?.timeRemaining || null,
+    inIntermission: game.clock?.inIntermission || false,
     startTimeLocal: formatStartTime(game.startTimeUTC)
   }
 }

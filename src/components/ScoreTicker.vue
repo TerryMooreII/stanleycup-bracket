@@ -69,8 +69,9 @@ onUnmounted(() => scores.stopPolling())
               </div>
             </div>
             <div class="game-status">
-              <span v-if="game.status === 'LIVE'" class="status-live">
-                {{ game.periodDescriptor }} {{ game.clock }}
+              <span v-if="game.status === 'LIVE'" class="status-live status-live-stacked">
+                <span class="status-period">{{ game.inIntermission ? game.periodDescriptor + ' INT' : game.periodDescriptor }}</span>
+                <span class="status-clock">{{ game.clock }}</span>
               </span>
               <span v-else-if="game.status === 'FINAL'" class="status-final">
                 {{ game.periodDescriptor === 'OT' || game.periodDescriptor === 'SO' ? 'F/' + game.periodDescriptor : 'Final' }}
@@ -140,7 +141,7 @@ onUnmounted(() => scores.stopPolling())
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--danger);
+  background: #4caf50;
   animation: pulse-dot 1.5s ease-in-out infinite;
 }
 
@@ -284,8 +285,19 @@ onUnmounted(() => scores.stopPolling())
 }
 
 .status-live {
-  color: var(--danger);
+  color: var(--text-secondary);
   font-weight: 700;
+}
+
+.status-live-stacked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.status-clock {
+  font-size: 0.6rem;
 }
 
 .status-final {
