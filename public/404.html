@@ -6,7 +6,7 @@
   <script>
     // GitHub Pages SPA redirect
     // Converts the path into a query string so index.html can restore it
-    var pathSegmentsToKeep = 1; // Keep '/stanleycup-bracket' prefix
+    var pathSegmentsToKeep = 0; // Custom domain serves from root
     var l = window.location;
     l.replace(
       l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
