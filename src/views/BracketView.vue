@@ -640,7 +640,7 @@ function getRoundLabel(roundNumber) {
   display: flex;
   align-items: stretch;
   justify-content: center;
-  min-height: 700px;
+  min-height: 680px;
   width: 100%;
 }
 
