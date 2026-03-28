@@ -7,7 +7,7 @@ function getCurrentSeason() {
   const bracket = useBracketStore()
   if (bracket.season?.year) {
     const y = bracket.season.year
-    return `${y}${y + 1}`
+    return `${y - 1}${y}`
   }
   // Fallback: compute from current date
   const now = new Date()
