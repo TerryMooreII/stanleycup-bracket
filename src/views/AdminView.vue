@@ -26,6 +26,7 @@ const editingMatchupId = ref(null)
 const editForm = ref({ team_home_id: null, team_away_id: null, seed_home: '', seed_away: '', bracket_position: 1 })
 const importingFromNHL = ref(false)
 const importError = ref('')
+const selectedSeasonYear = ref(null)
 
 async function handleImportFromNHL() {
   if (!bracket.season?.year || !currentRound.value) return
@@ -226,11 +227,18 @@ async function toggleUserActive(user) {
   user.is_active = newVal
 }
 
+async function onSeasonChange(year) {
+  selectedRound.value = 1
+  selectedConference.value = 'Western'
+  await bracket.fetchAll(auth.user?.id, year)
+}
+
 onMounted(async () => {
   await Promise.all([
     bracket.fetchAll(auth.user?.id),
     fetchUsers()
   ])
+  selectedSeasonYear.value = bracket.season?.year
 })
 
 const currentRound = computed(() => {
@@ -372,7 +380,11 @@ function formatDeadline(dateStr) {
     <div class="season-bar">
       <div class="season-info">
         <span class="season-label">Season:</span>
-        <span class="season-year">{{ bracket.season?.year || '—' }}</span>
+        <select class="season-year-select" v-model="selectedSeasonYear" @change="onSeasonChange(selectedSeasonYear)">
+          <option v-for="s in bracket.seasons" :key="s.id" :value="s.year">
+            {{ s.year }}{{ s.is_active ? ' *' : '' }}
+          </option>
+        </select>
       </div>
       <div v-if="showNewSeason" class="new-season-form">
         <input type="number" v-model.number="newSeasonYear" min="2020" max="2099" placeholder="Year" />
@@ -702,10 +714,33 @@ function formatDeadline(dateStr) {
   color: var(--text-secondary);
 }
 
-.season-year {
+.season-year-select {
   font-size: 1.3rem;
   font-weight: 800;
   color: var(--accent);
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed var(--text-muted);
+  border-radius: 0;
+  padding: 0 2px;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.season-year-select:hover,
+.season-year-select:focus {
+  border-bottom-color: var(--accent);
+}
+
+.season-year-select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
 }
 
 .new-season-form {

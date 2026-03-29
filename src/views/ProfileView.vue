@@ -33,103 +33,47 @@ onMounted(async () => {
 async function loadAllStats() {
   if (!auth.user?.id) return
 
-  // Fetch all seasons
-  const { data: seasons } = await supabase.from('seasons').select('*').order('year', { ascending: false })
-  if (!seasons || seasons.length === 0) return
+  const { data, error } = await supabase.rpc('get_career_stats')
+  if (error) throw error
 
-  // Fetch all rounds
-  const { data: allRounds } = await supabase.from('rounds').select('*').order('round_number')
-  if (!allRounds) return
+  const me = (data || []).find(r => r.user_id === auth.user.id)
+  if (!me) return
 
-  // Fetch all matchups
-  const allRoundIds = allRounds.map(r => r.id)
-  const { data: allMatchups } = await supabase.from('matchups').select('*').in('round_id', allRoundIds)
-  if (!allMatchups) return
+  const seasons = (me.season_details || [])
 
-  // Fetch all user picks
-  const allMatchupIds = allMatchups.map(m => m.id)
-  if (allMatchupIds.length === 0) return
-  const { data: allPicks } = await supabase.from('picks').select('*').eq('user_id', auth.user.id).in('matchup_id', allMatchupIds)
-  const picks = allPicks || []
+  careerStats.value = {
+    total: Number(me.total_picks),
+    correct: Number(me.total_correct),
+    points: Number(me.total_points),
+    seasons: Number(me.seasons_played)
+  }
 
-  // Build lookup maps
-  const roundMap = {}
-  allRounds.forEach(r => { roundMap[r.id] = r })
+  seasonBreakdown.value = seasons.map(s => ({
+    year: s.year,
+    isActive: s.isActive,
+    total: Number(s.total),
+    correct: Number(s.correct),
+    points: Number(s.points),
+    accuracy: s.accuracy != null ? Number(s.accuracy) : null
+  }))
 
-  const matchupRoundMap = {}
-  const winnerMap = {}
-  allMatchups.forEach(m => {
-    matchupRoundMap[m.id] = m.round_id
-    if (m.winner_id != null) winnerMap[m.id] = m.winner_id
-  })
-
-  // Per-season stats
-  const perSeason = []
-  let careerTotal = 0, careerCorrect = 0, careerPoints = 0, seasonsPlayed = 0
-
-  // Round performance accumulators
-  const roundAccum = { 1: { correct: 0, decided: 0 }, 2: { correct: 0, decided: 0 }, 3: { correct: 0, decided: 0 }, 4: { correct: 0, decided: 0 } }
-
-  const activeSeason = seasons.find(s => s.is_active)
-
-  for (const season of seasons) {
-    const seasonRounds = allRounds.filter(r => r.season_id === season.id)
-    const seasonRoundIds = new Set(seasonRounds.map(r => r.id))
-    const roundPointsMap = {}
-    seasonRounds.forEach(r => { roundPointsMap[r.id] = r.points_per_correct ?? 1 })
-
-    const seasonMatchups = allMatchups.filter(m => seasonRoundIds.has(m.round_id))
-    const seasonMatchupIds = new Set(seasonMatchups.map(m => m.id))
-    const seasonPicks = picks.filter(p => seasonMatchupIds.has(p.matchup_id))
-
-    if (seasonPicks.length === 0) continue
-    seasonsPlayed++
-
-    let correct = 0, points = 0, pending = 0
-    seasonPicks.forEach(p => {
-      if (winnerMap[p.matchup_id] !== undefined) {
-        if (p.team_id === winnerMap[p.matchup_id]) {
-          correct++
-          points += roundPointsMap[matchupRoundMap[p.matchup_id]] || 1
-
-          const round = roundMap[matchupRoundMap[p.matchup_id]]
-          if (round) roundAccum[round.round_number].correct++
-        }
-        const round = roundMap[matchupRoundMap[p.matchup_id]]
-        if (round) roundAccum[round.round_number].decided++
-      } else {
-        pending++
-      }
-    })
-
-    careerTotal += seasonPicks.length
-    careerCorrect += correct
-    careerPoints += points
-
-    const decided = seasonPicks.length - pending
-    perSeason.push({
-      year: season.year,
-      isActive: season.is_active,
-      total: seasonPicks.length,
-      correct,
-      points,
-      accuracy: decided > 0 ? Math.round((correct / decided) * 100) : null
-    })
-
-    // Set current season stats
-    if (season.is_active) {
-      currentStats.value = { total: seasonPicks.length, correct, pending, points }
+  // Current season stats
+  const active = seasons.find(s => s.isActive)
+  if (active) {
+    const pending = Number(active.total) - Number(active.decided)
+    currentStats.value = {
+      total: Number(active.total),
+      correct: Number(active.correct),
+      pending,
+      points: Number(active.points)
     }
   }
 
-  careerStats.value = { total: careerTotal, correct: careerCorrect, points: careerPoints, seasons: seasonsPlayed }
-  seasonBreakdown.value = perSeason
-
   roundPerformance.value = [
-    { label: 'Round 1', ...roundAccum[1] },
-    { label: 'Round 2', ...roundAccum[2] },
-    { label: 'Conf Finals', ...roundAccum[3] },
-    { label: 'Cup Final', ...roundAccum[4] }
+    { label: 'Round 1', correct: Number(me.r1_correct), decided: Number(me.r1_decided) },
+    { label: 'Round 2', correct: Number(me.r2_correct), decided: Number(me.r2_decided) },
+    { label: 'Conf Finals', correct: Number(me.r3_correct), decided: Number(me.r3_decided) },
+    { label: 'Cup Final', correct: Number(me.r4_correct), decided: Number(me.r4_decided) }
   ]
 }
 

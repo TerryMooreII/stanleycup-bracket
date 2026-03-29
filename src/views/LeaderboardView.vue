@@ -113,6 +113,7 @@ const leaderboard = computed(() => {
       tiebreakerDiff
     }
   }).sort((a, b) => b.points - a.points || a.tiebreakerDiff - b.tiebreakerDiff || b.correct - a.correct || a.name.localeCompare(b.name))
+    .filter(entry => isActiveSeason.value || entry.points > 0)
 })
 </script>
 

@@ -6,6 +6,7 @@ import { getLogoUrl } from '../lib/logos'
 
 const auth = useAuthStore()
 
+const activeTab = ref('career')
 const seasons = ref([])
 const users = ref([])
 const selectedSeasonId = ref(null)
@@ -17,6 +18,11 @@ const user1Picks = ref([])
 const user2Picks = ref([])
 const loading = ref(true)
 const loadingPicks = ref(false)
+
+// Career stats state
+const careerData = ref([])
+const careerLoaded = ref(false)
+const careerLoading = ref(false)
 
 onMounted(async () => {
   try {
@@ -31,6 +37,10 @@ onMounted(async () => {
     const activeSeason = seasons.value.find(s => s.is_active)
     if (activeSeason) selectedSeasonId.value = activeSeason.id
     if (auth.user) selectedUser1.value = auth.user.id
+    // Load career stats immediately if that's the active tab
+    if (activeTab.value === 'career') {
+      loadCareerStats()
+    }
   } catch (e) {
     console.error('History fetch error:', e)
   } finally {
@@ -148,15 +158,71 @@ function calcStats(picks) {
 
 const user1Stats = computed(() => calcStats(user1Picks.value))
 const user2Stats = computed(() => calcStats(user2Picks.value))
+
+// Career stats
+watch(activeTab, (tab) => {
+  if (tab === 'career' && !careerLoaded.value) {
+    loadCareerStats()
+  }
+})
+
+async function loadCareerStats() {
+  careerLoading.value = true
+  try {
+    const { data, error } = await supabase.rpc('get_career_stats')
+    if (error) throw error
+
+    careerData.value = (data || []).map(row => ({
+      id: row.user_id,
+      name: row.display_name || 'Unknown',
+      points: Number(row.total_points),
+      correct: Number(row.total_correct),
+      total: Number(row.total_picks),
+      accuracy: Number(row.total_picks) > 0 ? Math.round((Number(row.total_correct) / Number(row.total_picks)) * 100) : null,
+      seasons: Number(row.seasons_played),
+      roundPerformance: [
+        { label: 'R1', correct: Number(row.r1_correct), decided: Number(row.r1_decided) },
+        { label: 'R2', correct: Number(row.r2_correct), decided: Number(row.r2_decided) },
+        { label: 'CF', correct: Number(row.r3_correct), decided: Number(row.r3_decided) },
+        { label: 'SCF', correct: Number(row.r4_correct), decided: Number(row.r4_decided) }
+      ],
+      seasonRows: (row.season_details || []).map(s => ({
+        year: s.year,
+        points: Number(s.points),
+        correct: Number(s.correct),
+        total: Number(s.total),
+        accuracy: s.accuracy != null ? Number(s.accuracy) : null
+      }))
+    }))
+    careerLoaded.value = true
+  } catch (e) {
+    console.error('Career stats fetch error:', e)
+  } finally {
+    careerLoading.value = false
+  }
+}
+
+const expandedUser = ref(null)
+
+function toggleExpand(userId) {
+  expandedUser.value = expandedUser.value === userId ? null : userId
+}
 </script>
 
 <template>
   <div class="history-page">
-    <h1>Pick History</h1>
+    <h1>History</h1>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab" :class="{ active: activeTab === 'career' }" @click="activeTab = 'career'">Career Stats</button>
+      <button class="tab" :class="{ active: activeTab === 'picks' }" @click="activeTab = 'picks'">Pick History</button>
+    </div>
 
     <div v-if="loading" class="loading">Loading...</div>
 
-    <template v-else>
+    <!-- Pick History Tab -->
+    <template v-if="!loading && activeTab === 'picks'">
       <!-- Selectors -->
       <div class="selectors">
         <div class="selector">
@@ -251,6 +317,100 @@ const user2Stats = computed(() => calcStats(user2Picks.value))
         </div>
       </template>
     </template>
+
+    <!-- Career Stats Tab -->
+    <template v-if="!loading && activeTab === 'career'">
+      <div v-if="careerLoading" class="loading">Loading career stats...</div>
+
+      <template v-else-if="careerData.length > 0">
+        <table class="career-table">
+          <thead>
+            <tr>
+              <th class="rank-col">#</th>
+              <th>Player</th>
+              <th class="num-col">Points</th>
+              <th class="num-col">Correct</th>
+              <th class="num-col">Picks</th>
+              <th class="num-col">Acc</th>
+              <th class="num-col">Seasons</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template v-for="(entry, idx) in careerData" :key="entry.id">
+              <tr class="career-row" :class="{ 'top-3': idx < 3, expanded: expandedUser === entry.id }" @click="toggleExpand(entry.id)">
+                <td class="rank-col">
+                  <span v-if="idx === 0" class="medal gold">1</span>
+                  <span v-else-if="idx === 1" class="medal silver">2</span>
+                  <span v-else-if="idx === 2" class="medal bronze">3</span>
+                  <span v-else>{{ idx + 1 }}</span>
+                </td>
+                <td class="player-name">
+                  {{ entry.name }}
+                  <span class="expand-icon">{{ expandedUser === entry.id ? '&#9650;' : '&#9660;' }}</span>
+                </td>
+                <td class="num-col points">{{ entry.points }}</td>
+                <td class="num-col correct">{{ entry.correct }}</td>
+                <td class="num-col">{{ entry.total }}</td>
+                <td class="num-col">{{ entry.accuracy != null ? entry.accuracy + '%' : '—' }}</td>
+                <td class="num-col">{{ entry.seasons }}</td>
+              </tr>
+
+              <!-- Expanded detail -->
+              <tr v-if="expandedUser === entry.id" class="detail-row">
+                <td colspan="7">
+                  <div class="detail-content">
+                    <!-- Round Performance -->
+                    <div class="detail-section">
+                      <h3>Round Performance</h3>
+                      <div class="round-bars">
+                        <div v-for="round in entry.roundPerformance" :key="round.label" class="round-bar-row">
+                          <span class="round-bar-label">{{ round.label }}</span>
+                          <div class="round-bar-track">
+                            <div
+                              class="round-bar-fill"
+                              :style="{ width: round.decided > 0 ? (round.correct / round.decided * 100) + '%' : '0%' }"
+                            ></div>
+                          </div>
+                          <span class="round-bar-pct">
+                            {{ round.decided > 0 ? Math.round(round.correct / round.decided * 100) + '%' : '—' }}
+                          </span>
+                          <span class="round-bar-count">{{ round.correct }}/{{ round.decided }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Season History -->
+                    <div class="detail-section">
+                      <h3>Season History</h3>
+                      <div class="season-history">
+                        <div class="sh-row sh-header">
+                          <span class="sh-year">Year</span>
+                          <span class="sh-val">Pts</span>
+                          <span class="sh-val">Correct</span>
+                          <span class="sh-val">Picks</span>
+                          <span class="sh-val">Acc</span>
+                        </div>
+                        <div v-for="s in entry.seasonRows" :key="s.year" class="sh-row">
+                          <span class="sh-year">{{ s.year }}</span>
+                          <span class="sh-val">{{ s.points }}</span>
+                          <span class="sh-val">{{ s.correct }}</span>
+                          <span class="sh-val">{{ s.total }}</span>
+                          <span class="sh-val">{{ s.accuracy != null ? s.accuracy + '%' : '—' }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </template>
+
+      <div v-else class="empty-state">
+        No career data available yet.
+      </div>
+    </template>
   </div>
 </template>
 
@@ -262,8 +422,36 @@ const user2Stats = computed(() => calcStats(user2Picks.value))
 
 h1 {
   font-size: 1.6rem;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   color: var(--text-primary);
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  padding: 10px 24px;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  margin-bottom: -1px;
+}
+
+.tab:hover {
+  color: var(--text-primary);
+}
+
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
 .loading, .empty-state {
@@ -458,6 +646,218 @@ h1 {
   font-size: 0.85rem;
 }
 
+/* Career Stats Table */
+.career-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.career-table thead {
+  background: var(--bg-secondary);
+}
+
+.career-table th {
+  padding: 12px 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: left;
+}
+
+.career-table td {
+  padding: 14px 16px;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  border-top: 1px solid var(--border);
+}
+
+.career-row {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.career-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.career-row.expanded {
+  background: rgba(201, 168, 76, 0.03);
+}
+
+.rank-col {
+  width: 50px;
+  text-align: center;
+}
+
+.num-col {
+  width: 80px;
+  text-align: center;
+}
+
+.player-name {
+  font-weight: 600;
+}
+
+.expand-icon {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+
+.points {
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.correct {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.gold { background: #c9a84c; color: #1a1a2e; }
+.silver { background: #a0a0b0; color: #1a1a2e; }
+.bronze { background: #cd7f32; color: #1a1a2e; }
+
+.top-3 td {
+  background: rgba(201, 168, 76, 0.05);
+}
+
+/* Detail row */
+.detail-row td {
+  padding: 0;
+  border-top: none;
+}
+
+.detail-content {
+  padding: 16px 20px 20px;
+  background: var(--bg-secondary);
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.detail-section {
+  flex: 1;
+  min-width: 200px;
+}
+
+.detail-section h3 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+/* Round bars (reused from ProfileView) */
+.round-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.round-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.round-bar-label {
+  width: 36px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.round-bar-track {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.round-bar-fill {
+  height: 100%;
+  background: var(--success);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.round-bar-pct {
+  width: 32px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.round-bar-count {
+  width: 32px;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Season history */
+.season-history {
+  font-size: 0.8rem;
+}
+
+.sh-row {
+  display: flex;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.sh-row.sh-header {
+  font-weight: 700;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sh-year {
+  flex: 1;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sh-header .sh-year {
+  color: var(--text-muted);
+}
+
+.sh-val {
+  width: 48px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
 @media (max-width: 500px) {
   .selectors {
     flex-direction: column;
@@ -472,6 +872,18 @@ h1 {
   }
   .user-stats.right {
     text-align: left;
+  }
+  .career-table th,
+  .career-table td {
+    padding: 10px 8px;
+    font-size: 0.85rem;
+  }
+  .num-col {
+    width: 55px;
+  }
+  .detail-content {
+    flex-direction: column;
+    gap: 20px;
   }
 }
 </style>
