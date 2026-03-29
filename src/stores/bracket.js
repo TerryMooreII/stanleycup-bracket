@@ -99,7 +99,8 @@ export const useBracketStore = defineStore('bracket', () => {
         await fetchActiveSeason()
       }
       await Promise.all([fetchTeams(), fetchRounds()])
-      await Promise.all([fetchMatchups(), fetchPicks(userId)])
+      await fetchMatchups()
+      await fetchPicks(userId)
     } catch (e) {
       console.error('Bracket fetch error:', e)
     } finally {
