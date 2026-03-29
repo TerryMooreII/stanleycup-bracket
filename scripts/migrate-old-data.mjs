@@ -39,15 +39,16 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // rounds, and matchups — but will skip picks.
 // =============================================================================
 const USER_MAPPING = [
-  { oldId: 1,  username: 'terry.moore.ii', fullName: 'Terry Moore II',  email: 'motersho@gmail.com',          newUuid: '' },
-  { oldId: 8,  username: 'tj',             fullName: 'TJ Moore',        email: 'tjmoore24@roadrunner.com',     newUuid: '' },
-  { oldId: 12, username: 'Stacie',         fullName: 'Stacie Moore',    email: 'smoore@miamisburg.k12.oh.us',  newUuid: '' },
-  { oldId: 13, username: 'terry',          fullName: 'Terry Moore',     email: 'themooreman53@gmail.com',      newUuid: '' },
-  { oldId: 14, username: 'betty',          fullName: 'Betty Moore',     email: 'bmoore.25@woh.rr.com',         newUuid: '' },
-  { oldId: 15, username: 'kinley',         fullName: 'Kinley Moore',    email: 'skemper24@gmail.com',           newUuid: '' },
-  { oldId: 16, username: 'shonagh',        fullName: 'Shonagh Moore',   email: 'shonagh.moore@gmail.com',      newUuid: '' },
-  { oldId: 17, username: 'nathan',         fullName: 'Nathan Moore',    email: 'motersho@gmail.com',           newUuid: '' },
-  { oldId: 18, username: 'ethel',          fullName: 'Ethel Moore',     email: 'ethemoore2015@gmail.com',      newUuid: '' },
+  { oldId: 1,  username: 'terry.moore.ii', fullName: 'Terry Moore II',  email: 'motersho@gmail.com',          newUuid: 'a03cd159-1f8a-4a3d-8323-35c8c06db90c' },
+  { oldId: 8,  username: 'tj',             fullName: 'TJ Moore',        email: 'tjmoore24@roadrunner.com',     newUuid: '1bd71c35-1fbc-46ff-969d-d4a917e508b8' },
+  { oldId: 12, username: 'Stacie',         fullName: 'Stacie Moore',    email: 'smoore@miamisburg.k12.oh.us',  newUuid: '41c5cd20-8cb9-4ef2-98ab-042c902d46a2' },
+  { oldId: 13, username: 'terry',          fullName: 'Terry Moore',     email: 'themooreman53@gmail.com',      newUuid: 'a3ae51b6-de98-48e8-93f4-7caab8eab9e3' },
+  { oldId: 14, username: 'betty',          fullName: 'Betty Moore',     email: 'bmoore.25@woh.rr.com',         newUuid: 'ef6eecee-db1b-4ef8-a287-56991a16387a' },
+  { oldId: 15, username: 'kinley',         fullName: 'Kinley Moore',    email: 'skemper24@gmail.com',           newUuid: 'bcc28716-2a45-4ad6-b94d-52f2c29997f1' },
+  { oldId: 16, username: 'shonagh',        fullName: 'Shonagh Moore',   email: 'shonagh.moore@gmail.com',      newUuid: '3b04eef1-7fe0-45c4-8070-be28aa4225af' },
+  { oldId: 17, username: 'nathan',         fullName: 'Nathan Moore',    email: 'motersho@gmail.com',           newUuid: 'a67ffe80-0c75-4963-9848-7efbf507b748' },
+  { oldId: 18, username: 'ethel',          fullName: 'Ethel Moore',     email: 'ethemoore2015@gmail.com',      newUuid: '2e769de8-4156-4652-b5d2-53e62ed3defe' },
+  { oldId: 19, username: 'ken',          fullName: 'Ken Moore',     email: 'kenmoe@prodigy.com',      newUuid: '68f99a57-3c9e-40ed-9b21-4499ac79ab39' },
 ];
 
 // =============================================================================
