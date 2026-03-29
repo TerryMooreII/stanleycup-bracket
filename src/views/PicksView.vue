@@ -10,6 +10,7 @@ const rounds = ref([])
 const matchups = ref([])
 const allPicks = ref([])
 const users = ref([])
+const isActiveSeason = ref(false)
 const loading = ref(true)
 
 async function loadData() {
@@ -20,9 +21,11 @@ async function loadData() {
     if (year) {
       const res = await supabase.from('seasons').select('*').eq('year', year).single()
       seasonId = res.data?.id
+      isActiveSeason.value = res.data?.is_active === true
     } else {
       const res = await supabase.from('seasons').select('*').eq('is_active', true).single()
       seasonId = res.data?.id
+      isActiveSeason.value = true
     }
 
     const [roundsRes, profilesRes] = await Promise.all([
@@ -83,8 +86,10 @@ function getUsersForTeam(matchupId, teamId) {
   const picks = getPicksForMatchup(matchupId).filter(p => p.team_id === teamId)
   return picks.map(p => {
     const user = users.value.find(u => u.id === p.user_id)
-    return user?.display_name || 'Unknown'
-  }).sort()
+    if (!user) return null
+    if (isActiveSeason.value && user.is_active === false) return null
+    return user.display_name || 'Unknown'
+  }).filter(Boolean).sort()
 }
 
 

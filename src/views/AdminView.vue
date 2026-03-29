@@ -4,9 +4,14 @@ import { useAuthStore } from '../stores/auth'
 import { useBracketStore } from '../stores/bracket'
 import { nhlUrl } from '../lib/nhlApi'
 import { getLogoUrl } from '../lib/logos'
+import { supabase } from '../lib/supabase'
 
 const auth = useAuthStore()
 const bracket = useBracketStore()
+
+const activeTab = ref('bracket')
+const allUsers = ref([])
+const usersLoading = ref(false)
 
 const selectedRound = ref(1)
 const selectedConference = ref('Western')
@@ -196,8 +201,36 @@ const newMatchup = ref({
   bracket_position: 1
 })
 
+async function fetchUsers() {
+  usersLoading.value = true
+  try {
+    const { data } = await supabase.from('profiles').select('*').order('display_name')
+    allUsers.value = data || []
+  } catch (e) {
+    console.error('Failed to fetch users:', e)
+  } finally {
+    usersLoading.value = false
+  }
+}
+
+async function toggleUserActive(user) {
+  const newVal = !user.is_active
+  const { error } = await supabase
+    .from('profiles')
+    .update({ is_active: newVal })
+    .eq('id', user.id)
+  if (error) {
+    alert('Error updating user: ' + error.message)
+    return
+  }
+  user.is_active = newVal
+}
+
 onMounted(async () => {
-  await bracket.fetchAll(auth.user?.id)
+  await Promise.all([
+    bracket.fetchAll(auth.user?.id),
+    fetchUsers()
+  ])
 })
 
 const currentRound = computed(() => {
@@ -305,6 +338,35 @@ function formatDeadline(dateStr) {
 <template>
   <div class="admin-page">
     <h1>Admin Panel</h1>
+
+    <!-- Tabs -->
+    <div class="admin-tabs">
+      <button class="admin-tab" :class="{ active: activeTab === 'bracket' }" @click="activeTab = 'bracket'">Bracket</button>
+      <button class="admin-tab" :class="{ active: activeTab === 'users' }" @click="activeTab = 'users'">Users</button>
+    </div>
+
+    <!-- Users Tab -->
+    <div v-if="activeTab === 'users'" class="users-section">
+      <div v-if="usersLoading" class="loading">Loading users...</div>
+      <div v-else class="users-list">
+        <div v-for="user in allUsers" :key="user.id" class="user-row">
+          <div class="user-info">
+            <span class="user-name">{{ user.display_name || 'Unknown' }}</span>
+            <span v-if="user.is_admin" class="admin-badge">Admin</span>
+          </div>
+          <button
+            class="btn-sm"
+            :class="user.is_active !== false ? 'btn-active-user' : 'btn-inactive-user'"
+            @click="toggleUserActive(user)"
+          >
+            {{ user.is_active !== false ? 'Active' : 'Inactive' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bracket Tab -->
+    <template v-if="activeTab === 'bracket'">
 
     <!-- Season info -->
     <div class="season-bar">
@@ -580,6 +642,8 @@ function formatDeadline(dateStr) {
         </template>
       </div>
     </div>
+
+    </template><!-- end bracket tab -->
   </div>
 </template>
 
@@ -587,6 +651,33 @@ function formatDeadline(dateStr) {
 .admin-page {
   max-width: 900px;
   margin: 0 auto;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-tab {
+  padding: 10px 24px;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  margin-bottom: -1px;
+}
+
+.admin-tab:hover {
+  color: var(--text-primary);
+}
+
+.admin-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
 .season-bar {
@@ -1078,6 +1169,66 @@ h2 {
 .btn-delete:hover {
   border-color: var(--danger);
   color: var(--danger);
+}
+
+/* Users section */
+.users-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.user-row:last-child {
+  border-bottom: none;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.admin-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(201, 168, 76, 0.15);
+  color: var(--accent);
+}
+
+.btn-active-user {
+  background: rgba(76, 175, 80, 0.15) !important;
+  border-color: var(--success) !important;
+  color: var(--success) !important;
+}
+
+.btn-inactive-user {
+  background: rgba(244, 67, 54, 0.1) !important;
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
 }
 
 @media (max-width: 600px) {

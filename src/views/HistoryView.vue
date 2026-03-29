@@ -86,6 +86,18 @@ watch([selectedSeasonId, selectedUser1, selectedUser2], async () => {
   }
 }, { immediate: true })
 
+const isActiveSeason = computed(() => {
+  const season = seasons.value.find(s => s.id === selectedSeasonId.value)
+  return season?.is_active === true
+})
+
+const filteredUsers = computed(() => {
+  if (isActiveSeason.value) {
+    return users.value.filter(u => u.is_active !== false)
+  }
+  return users.value
+})
+
 const comparing = computed(() => !!selectedUser2.value)
 
 function getUserName(userId) {
@@ -159,7 +171,7 @@ const user2Stats = computed(() => calcStats(user2Picks.value))
           <label>Player 1</label>
           <select v-model="selectedUser1">
             <option :value="null">Select player...</option>
-            <option v-for="u in users" :key="u.id" :value="u.id">
+            <option v-for="u in filteredUsers" :key="u.id" :value="u.id">
               {{ u.display_name || 'Unknown' }}
             </option>
           </select>
@@ -168,7 +180,7 @@ const user2Stats = computed(() => calcStats(user2Picks.value))
           <label>Compare with</label>
           <select v-model="selectedUser2">
             <option :value="null">— None —</option>
-            <option v-for="u in users" :key="u.id" :value="u.id" :disabled="u.id === selectedUser1">
+            <option v-for="u in filteredUsers" :key="u.id" :value="u.id" :disabled="u.id === selectedUser1">
               {{ u.display_name || 'Unknown' }}
             </option>
           </select>
