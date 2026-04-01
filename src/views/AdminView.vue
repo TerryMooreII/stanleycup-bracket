@@ -44,7 +44,7 @@ async function handleImportFromNHL() {
 
   try {
     const year = bracket.season.year
-    const seasonId = `${year}${year + 1}`
+    const seasonId = `${year - 1}${year}`
     const res = await fetch(nhlUrl(`/v1/playoff-series/carousel/${seasonId}`))
     if (!res.ok) throw new Error('Failed to fetch NHL playoff data')
     const data = await res.json()
