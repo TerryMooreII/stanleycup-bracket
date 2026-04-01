@@ -2,6 +2,7 @@
 import { onMounted, ref, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../lib/supabase'
+import ZamboniLoader from '../components/ZamboniLoader.vue'
 
 const auth = useAuthStore()
 
@@ -273,7 +274,7 @@ async function changePassword() {
           </div>
         </div>
       </div>
-      <div v-else class="loading">Loading stats...</div>
+      <ZamboniLoader v-else message="Loading stats..." />
     </div>
   </div>
 </template>

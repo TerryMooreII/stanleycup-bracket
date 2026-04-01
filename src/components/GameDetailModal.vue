@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import { nhlUrl } from '../lib/nhlApi'
 import { useBracketStore } from '../stores/bracket'
 import { getLogoUrl } from '../lib/logos'
+import ZamboniLoader from './ZamboniLoader.vue'
 
 const bracket = useBracketStore()
 
@@ -216,10 +217,7 @@ watch(() => props.visible, (show) => {
       <button class="modal-close" @click="emit('close')">&times;</button>
 
       <!-- Loading -->
-      <div v-if="loading" class="loading-state">
-        <div class="spinner"></div>
-        <span>Loading game data...</span>
-      </div>
+      <ZamboniLoader v-if="loading" message="Loading game data..." />
 
       <!-- Error -->
       <div v-else-if="error" class="error-state">

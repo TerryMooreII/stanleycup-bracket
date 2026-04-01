@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { useResearchStore } from '../stores/research'
 import { getLogoUrl } from '../lib/logos'
+import ZamboniLoader from './ZamboniLoader.vue'
 
 const props = defineProps({
   matchup: { type: Object, default: null },
@@ -60,10 +61,7 @@ watch(() => props.visible, async (show) => {
         </div>
       </div>
 
-      <div v-if="research.loading" class="loading-state">
-        <div class="spinner"></div>
-        <span>Loading research data...</span>
-      </div>
+      <ZamboniLoader v-if="research.loading" message="Loading research data..." />
 
       <div v-else-if="research.error" class="error-state">
         <p>{{ research.error }}</p>

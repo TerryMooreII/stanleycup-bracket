@@ -3,6 +3,7 @@ import { onMounted, ref, computed, watch } from 'vue'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores/auth'
 import { getLogoUrl } from '../lib/logos'
+import ZamboniLoader from '../components/ZamboniLoader.vue'
 
 const auth = useAuthStore()
 
@@ -219,7 +220,7 @@ function toggleExpand(userId) {
       <button class="tab" :class="{ active: activeTab === 'picks' }" @click="activeTab = 'picks'">Pick History</button>
     </div>
 
-    <div v-if="loading" class="loading">Loading...</div>
+    <ZamboniLoader v-if="loading" />
 
     <!-- Pick History Tab -->
     <template v-if="!loading && activeTab === 'picks'">
@@ -265,7 +266,7 @@ function toggleExpand(userId) {
         </div>
       </div>
 
-      <div v-if="loadingPicks" class="loading">Loading picks...</div>
+      <ZamboniLoader v-if="loadingPicks" message="Loading picks..." />
 
       <!-- Rounds -->
       <template v-else>
@@ -320,7 +321,7 @@ function toggleExpand(userId) {
 
     <!-- Career Stats Tab -->
     <template v-if="!loading && activeTab === 'career'">
-      <div v-if="careerLoading" class="loading">Loading career stats...</div>
+      <ZamboniLoader v-if="careerLoading" message="Loading career stats..." />
 
       <template v-else-if="careerData.length > 0">
         <table class="career-table">

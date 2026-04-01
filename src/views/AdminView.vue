@@ -5,6 +5,7 @@ import { useBracketStore } from '../stores/bracket'
 import { nhlUrl } from '../lib/nhlApi'
 import { getLogoUrl } from '../lib/logos'
 import { supabase } from '../lib/supabase'
+import ZamboniLoader from '../components/ZamboniLoader.vue'
 
 const auth = useAuthStore()
 const bracket = useBracketStore()
@@ -355,7 +356,7 @@ function formatDeadline(dateStr) {
 
     <!-- Users Tab -->
     <div v-if="activeTab === 'users'" class="users-section">
-      <div v-if="usersLoading" class="loading">Loading users...</div>
+      <ZamboniLoader v-if="usersLoading" message="Loading users..." />
       <div v-else class="users-list">
         <div v-for="user in allUsers" :key="user.id" class="user-row">
           <div class="user-info">

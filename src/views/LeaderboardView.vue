@@ -2,6 +2,7 @@
 import { onMounted, ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { supabase } from '../lib/supabase'
+import ZamboniLoader from '../components/ZamboniLoader.vue'
 
 const route = useRoute()
 const users = ref([])
@@ -121,7 +122,7 @@ const leaderboard = computed(() => {
   <div class="leaderboard-page">
     <h1>Leaderboard</h1>
 
-    <div v-if="loading" class="loading">Loading...</div>
+    <ZamboniLoader v-if="loading" />
 
     <table v-else-if="leaderboard.length > 0" class="lb-table">
       <thead>

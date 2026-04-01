@@ -3,6 +3,7 @@ import { onMounted, ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { supabase } from '../lib/supabase'
 import { getLogoUrl } from '../lib/logos'
+import ZamboniLoader from '../components/ZamboniLoader.vue'
 
 const route = useRoute()
 const selectedRound = ref(1)
@@ -106,7 +107,7 @@ function getRoundLabel(num) {
   <div class="picks-page">
     <h1>All Picks</h1>
 
-    <div v-if="loading" class="loading">Loading...</div>
+    <ZamboniLoader v-if="loading" />
 
     <template v-else>
       <!-- Round selector -->

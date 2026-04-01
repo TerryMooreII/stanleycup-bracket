@@ -6,6 +6,7 @@ import { useRoute } from 'vue-router'
 import MatchupCard from '../components/MatchupCard.vue'
 import EmptyMatchupCard from '../components/EmptyMatchupCard.vue'
 import MatchupResearchModal from '../components/MatchupResearchModal.vue'
+import ZamboniLoader from '../components/ZamboniLoader.vue'
 import cupLogo from '../assets/stanleycup.png'
 
 const auth = useAuthStore()
@@ -167,7 +168,7 @@ function getRoundLabel(roundNumber) {
 
 <template>
   <div class="bracket-container">
-    <div v-if="bracket.loading" class="loading">Loading bracket...</div>
+    <ZamboniLoader v-if="bracket.loading" message="Loading bracket..." />
 
     <template v-else>
       <!-- Pick deadline banner -->
