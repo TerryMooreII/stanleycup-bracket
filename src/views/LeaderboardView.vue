@@ -124,7 +124,8 @@ const leaderboard = computed(() => {
 
     <ZamboniLoader v-if="loading" />
 
-    <table v-else-if="leaderboard.length > 0" class="lb-table">
+    <div v-else-if="leaderboard.length > 0" class="table-scroll">
+    <table class="lb-table">
       <thead>
         <tr>
           <th class="rank-col">#</th>
@@ -153,6 +154,7 @@ const leaderboard = computed(() => {
         </tr>
       </tbody>
     </table>
+    </div>
 
     <div v-else class="empty-state">
       No picks have been made yet. Be the first!
@@ -176,6 +178,11 @@ h1 {
   text-align: center;
   padding: 40px;
   color: var(--text-secondary);
+}
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .lb-table {

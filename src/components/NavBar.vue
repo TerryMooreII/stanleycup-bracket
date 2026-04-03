@@ -89,8 +89,10 @@ async function handleSignOut() {
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border);
   padding: 0 20px;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
 }
 

@@ -324,6 +324,7 @@ function toggleExpand(userId) {
       <ZamboniLoader v-if="careerLoading" message="Loading career stats..." />
 
       <template v-else-if="careerData.length > 0">
+        <div class="table-scroll">
         <table class="career-table">
           <thead>
             <tr>
@@ -406,6 +407,7 @@ function toggleExpand(userId) {
             </template>
           </tbody>
         </table>
+        </div>
       </template>
 
       <div v-else class="empty-state">
@@ -648,6 +650,11 @@ h1 {
 }
 
 /* Career Stats Table */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .career-table {
   width: 100%;
   border-collapse: collapse;

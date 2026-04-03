@@ -23,6 +23,7 @@ onMounted(() => {
 main {
   flex: 1;
   padding: 20px;
+  padding-top: 80px;
   padding-bottom: 72px;
   max-width: 1400px;
   margin: 0 auto;
@@ -32,6 +33,7 @@ main {
 @media (max-width: 768px) {
   main {
     padding: 10px;
+    padding-top: 70px;
     padding-bottom: 62px;
   }
 }
