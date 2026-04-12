@@ -1,24 +1,23 @@
 <script setup>
 import { ref } from 'vue'
-import { useAuthStore } from '../stores/auth'
-import { useRouter } from 'vue-router'
+import { supabase } from '../lib/supabase'
 import BaseButton from '../components/ui/BaseButton.vue'
 import BaseCard from '../components/ui/BaseCard.vue'
 
-const auth = useAuthStore()
-const router = useRouter()
-
 const email = ref('')
-const password = ref('')
 const error = ref('')
+const sent = ref(false)
 const loading = ref(false)
 
-async function handleLogin() {
+async function handleSubmit() {
   error.value = ''
   loading.value = true
   try {
-    await auth.signIn(email.value, password.value)
-    router.push('/')
+    const { error: err } = await supabase.auth.resetPasswordForEmail(email.value, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    if (err) throw err
+    sent.value = true
   } catch (e) {
     error.value = e.message
   } finally {
@@ -30,29 +29,26 @@ async function handleLogin() {
 <template>
   <div class="auth-page">
     <BaseCard padding="lg" radius="lg" class="auth-card">
-      <h1>Sign In</h1>
-      <p class="subtitle">Welcome back to the Stanley Cup Bracket</p>
+      <h1>Forgot Password</h1>
+      <p class="subtitle">Enter your email and we'll send you a reset link.</p>
 
-      <form @submit.prevent="handleLogin">
+      <div v-if="sent" class="success">
+        If an account exists for <strong>{{ email }}</strong>, a reset link is on its way. Check your inbox.
+      </div>
+
+      <form v-else @submit.prevent="handleSubmit">
         <div class="field">
           <label>Email</label>
           <input v-model="email" type="email" required placeholder="you@example.com" />
         </div>
-        <div class="field">
-          <label>Password</label>
-          <input v-model="password" type="password" required placeholder="Your password" />
-        </div>
         <div v-if="error" class="error">{{ error }}</div>
         <BaseButton type="submit" variant="primary" block :loading="loading">
-          {{ loading ? 'Signing in...' : 'Sign In' }}
+          {{ loading ? 'Sending...' : 'Send Reset Link' }}
         </BaseButton>
       </form>
 
       <p class="switch">
-        <router-link to="/forgot-password">Forgot password?</router-link>
-      </p>
-      <p class="switch">
-        Don't have an account? <router-link to="/register">Register</router-link>
+        <router-link to="/login">Back to sign in</router-link>
       </p>
     </BaseCard>
   </div>
@@ -117,6 +113,16 @@ input:focus {
   padding: 10px 14px;
   border-radius: 8px;
   font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+.success {
+  background: rgba(76, 175, 80, 0.1);
+  color: var(--success);
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.5;
   margin-bottom: 16px;
 }
 
