@@ -23,7 +23,8 @@ defineEmits(['update:modelValue'])
         :class="{ active: modelValue === t.key }"
         @click="$emit('update:modelValue', t.key)"
       >
-        {{ t.label }}
+        <span :class="{ 'tab-label-full': t.shortLabel }">{{ t.label }}</span>
+        <span v-if="t.shortLabel" class="tab-label-short">{{ t.shortLabel }}</span>
       </button>
     </div>
     <div class="tab-panel">
@@ -63,4 +64,11 @@ defineEmits(['update:modelValue'])
 }
 
 .tab-panel { }
+
+.tab-label-short { display: none; }
+
+@media (max-width: 600px) {
+  .tab-label-full { display: none; }
+  .tab-label-short { display: inline; }
+}
 </style>

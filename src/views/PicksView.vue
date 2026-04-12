@@ -7,10 +7,10 @@ import ZamboniLoader from '../components/ui/ZamboniLoader.vue'
 import BaseTabs from '../components/ui/BaseTabs.vue'
 
 const roundTabs = [
-  { key: 1, label: 'R1' },
-  { key: 2, label: 'R2' },
-  { key: 3, label: 'CF' },
-  { key: 4, label: 'Final' },
+  { key: 1, label: 'Round 1', shortLabel: 'R1' },
+  { key: 2, label: 'Round 2', shortLabel: 'R2' },
+  { key: 3, label: 'Conference Final', shortLabel: 'CF' },
+  { key: 4, label: 'Stanley Cup Final', shortLabel: 'Final' },
 ]
 
 const route = useRoute()
