@@ -3,7 +3,15 @@ import { onMounted, ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { supabase } from '../lib/supabase'
 import { getLogoUrl } from '../lib/logos'
-import ZamboniLoader from '../components/ZamboniLoader.vue'
+import ZamboniLoader from '../components/ui/ZamboniLoader.vue'
+import BaseTabs from '../components/ui/BaseTabs.vue'
+
+const roundTabs = [
+  { key: 1, label: 'R1' },
+  { key: 2, label: 'R2' },
+  { key: 3, label: 'CF' },
+  { key: 4, label: 'Final' },
+]
 
 const route = useRoute()
 const selectedRound = ref(1)
@@ -94,13 +102,6 @@ function getUsersForTeam(matchupId, teamId) {
 }
 
 
-function getRoundLabel(num) {
-  if (num === 1) return 'R1'
-  if (num === 2) return 'R2'
-  if (num === 3) return 'CF'
-  if (num === 4) return 'Final'
-  return ''
-}
 </script>
 
 <template>
@@ -110,18 +111,7 @@ function getRoundLabel(num) {
     <ZamboniLoader v-if="loading" />
 
     <template v-else>
-      <!-- Round selector -->
-      <div class="round-selector">
-        <button
-          v-for="r in [1, 2, 3, 4]"
-          :key="r"
-          :class="{ active: selectedRound === r }"
-          @click="selectedRound = r"
-        >
-          {{ getRoundLabel(r) }}
-        </button>
-      </div>
-
+      <BaseTabs v-model="selectedRound" :tabs="roundTabs">
       <!-- Locked message -->
       <div v-if="!isLocked" class="locked-message">
         <div class="lock-icon">&#128274;</div>
@@ -267,6 +257,7 @@ function getRoundLabel(num) {
           </div>
         </template>
       </template>
+      </BaseTabs>
     </template>
   </div>
 </template>
@@ -289,40 +280,6 @@ h1 {
   color: var(--text-secondary);
 }
 
-/* Round selector */
-.round-selector {
-  display: flex;
-  gap: 0;
-  margin-bottom: 24px;
-}
-
-.round-selector button {
-  padding: 10px 20px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-
-.round-selector button:first-child {
-  border-radius: 8px 0 0 8px;
-}
-
-.round-selector button:last-child {
-  border-radius: 0 8px 8px 0;
-}
-
-.round-selector button:not(:last-child) {
-  border-right: none;
-}
-
-.round-selector button.active {
-  background: var(--accent);
-  color: var(--bg-primary);
-  border-color: var(--accent);
-}
 
 /* Locked message */
 .locked-message {

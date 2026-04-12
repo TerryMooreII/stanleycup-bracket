@@ -3,7 +3,13 @@ import { onMounted, ref, computed, watch } from 'vue'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores/auth'
 import { getLogoUrl } from '../lib/logos'
-import ZamboniLoader from '../components/ZamboniLoader.vue'
+import ZamboniLoader from '../components/ui/ZamboniLoader.vue'
+import BaseTabs from '../components/ui/BaseTabs.vue'
+
+const historyTabs = [
+  { key: 'career', label: 'Career Stats' },
+  { key: 'picks', label: 'Pick History' }
+]
 
 const auth = useAuthStore()
 
@@ -214,16 +220,11 @@ function toggleExpand(userId) {
   <div class="history-page">
     <h1>History</h1>
 
-    <!-- Tabs -->
-    <div class="tabs">
-      <button class="tab" :class="{ active: activeTab === 'career' }" @click="activeTab = 'career'">Career Stats</button>
-      <button class="tab" :class="{ active: activeTab === 'picks' }" @click="activeTab = 'picks'">Pick History</button>
-    </div>
-
     <ZamboniLoader v-if="loading" />
 
-    <!-- Pick History Tab -->
-    <template v-if="!loading && activeTab === 'picks'">
+    <!-- Tabs -->
+    <BaseTabs v-else v-model="activeTab" :tabs="historyTabs">
+      <template #picks>
       <!-- Selectors -->
       <div class="selectors">
         <div class="selector">
@@ -317,10 +318,9 @@ function toggleExpand(userId) {
           No matchups for this season yet.
         </div>
       </template>
-    </template>
+      </template>
 
-    <!-- Career Stats Tab -->
-    <template v-if="!loading && activeTab === 'career'">
+      <template #career>
       <ZamboniLoader v-if="careerLoading" message="Loading career stats..." />
 
       <template v-else-if="careerData.length > 0">
@@ -413,7 +413,8 @@ function toggleExpand(userId) {
       <div v-else class="empty-state">
         No career data available yet.
       </div>
-    </template>
+      </template>
+    </BaseTabs>
   </div>
 </template>
 
@@ -427,34 +428,6 @@ h1 {
   font-size: 1.6rem;
   margin-bottom: 16px;
   color: var(--text-primary);
-}
-
-/* Tabs */
-.tabs {
-  display: flex;
-  gap: 0;
-  margin-bottom: 24px;
-  border-bottom: 1px solid var(--border);
-}
-
-.tab {
-  padding: 10px 24px;
-  background: none;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 600;
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
-  margin-bottom: -1px;
-}
-
-.tab:hover {
-  color: var(--text-primary);
-}
-
-.tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
 }
 
 .loading, .empty-state {

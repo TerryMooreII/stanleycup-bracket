@@ -2,7 +2,7 @@
 import { onMounted, ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { supabase } from '../lib/supabase'
-import ZamboniLoader from '../components/ZamboniLoader.vue'
+import ZamboniLoader from '../components/ui/ZamboniLoader.vue'
 
 const route = useRoute()
 const users = ref([])

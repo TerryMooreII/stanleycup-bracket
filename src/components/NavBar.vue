@@ -3,6 +3,7 @@ import { useAuthStore } from '../stores/auth'
 import { useBracketStore } from '../stores/bracket'
 import { useRouter, useRoute } from 'vue-router'
 import { ref, computed } from 'vue'
+import BaseButton from './ui/BaseButton.vue'
 
 const auth = useAuthStore()
 const bracket = useBracketStore()
@@ -73,7 +74,7 @@ async function handleSignOut() {
           <router-link to="/history" @click="menuOpen = false">History</router-link>
           <router-link v-if="auth.isAdmin" to="/admin" @click="menuOpen = false">Admin</router-link>
           <router-link to="/profile" class="nav-user" @click="menuOpen = false">{{ auth.profile?.display_name }}</router-link>
-          <button class="btn-signout" @click="handleSignOut">Sign Out</button>
+          <BaseButton variant="ghost" size="sm" @click="handleSignOut">Sign Out</BaseButton>
         </template>
         <template v-else>
           <router-link to="/login" @click="menuOpen = false">Sign In</router-link>
@@ -171,20 +172,6 @@ async function handleSignOut() {
 .nav-user {
   color: var(--text-secondary);
   font-size: 0.85rem;
-}
-
-.btn-signout {
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  padding: 6px 14px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-.btn-signout:hover {
-  border-color: var(--danger);
-  color: var(--danger);
 }
 
 .btn-register {

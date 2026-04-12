@@ -6,7 +6,9 @@ import { useRoute } from 'vue-router'
 import MatchupCard from '../components/MatchupCard.vue'
 import EmptyMatchupCard from '../components/EmptyMatchupCard.vue'
 import MatchupResearchModal from '../components/MatchupResearchModal.vue'
-import ZamboniLoader from '../components/ZamboniLoader.vue'
+import ZamboniLoader from '../components/ui/ZamboniLoader.vue'
+import BaseButton from '../components/ui/BaseButton.vue'
+import BaseModal from '../components/ui/BaseModal.vue'
 import cupLogo from '../assets/stanleycup.png'
 
 const auth = useAuthStore()
@@ -186,36 +188,31 @@ function getRoundLabel(roundNumber) {
       <button class="help-btn" @click="showHelp = true" title="Pick legend">?</button>
 
       <!-- Help modal -->
-      <div v-if="showHelp" class="help-overlay" @click.self="showHelp = false">
-        <div class="help-modal">
-          <button class="help-close" @click="showHelp = false">&times;</button>
-          <h3 class="help-title">Pick Legend</h3>
-
-          <div class="help-example">
-            <div class="help-label">Your pick (no result yet)</div>
-            <div class="help-matchup">
-              <div class="help-team selected-example">COL</div>
-              <div class="help-team">NSH</div>
-            </div>
-          </div>
-
-          <div class="help-example">
-            <div class="help-label">Correct pick</div>
-            <div class="help-matchup">
-              <div class="help-team correct-example">COL</div>
-              <div class="help-team loser-example">NSH</div>
-            </div>
-          </div>
-
-          <div class="help-example">
-            <div class="help-label">Wrong pick</div>
-            <div class="help-matchup">
-              <div class="help-team wrong-example">COL</div>
-              <div class="help-team winner-example">NSH</div>
-            </div>
+      <BaseModal v-model:modelValue="showHelp" title="Pick Legend" size="sm">
+        <div class="help-example">
+          <div class="help-label">Your pick (no result yet)</div>
+          <div class="help-matchup">
+            <div class="help-team selected-example">COL</div>
+            <div class="help-team">NSH</div>
           </div>
         </div>
-      </div>
+
+        <div class="help-example">
+          <div class="help-label">Correct pick</div>
+          <div class="help-matchup">
+            <div class="help-team correct-example">COL</div>
+            <div class="help-team loser-example">NSH</div>
+          </div>
+        </div>
+
+        <div class="help-example">
+          <div class="help-label">Wrong pick</div>
+          <div class="help-matchup">
+            <div class="help-team wrong-example">COL</div>
+            <div class="help-team winner-example">NSH</div>
+          </div>
+        </div>
+      </BaseModal>
 
       <!-- Desktop bracket layout -->
       <div class="bracket-grid">
@@ -427,32 +424,29 @@ function getRoundLabel(roundNumber) {
       />
 
       <!-- Tiebreaker modal -->
-      <div v-if="showTiebreaker" class="modal-overlay" @click.self="cancelTiebreaker">
-        <div class="modal">
-          <h3>Stanley Cup Final Tiebreaker</h3>
-          <p class="modal-desc">Predict the total number of goals scored in the entire Final series. In case of a tie on the leaderboard, the closest prediction without going over wins.</p>
-          <div class="modal-field">
-            <label>Total Goals in Series</label>
-            <input
-              type="number"
-              v-model.number="tiebreakerGoals"
-              min="1"
-              placeholder="e.g. 35"
-              @keyup.enter="submitTiebreaker"
-              autofocus
-            />
-          </div>
-          <div v-if="tiebreakerError" class="modal-error">{{ tiebreakerError }}</div>
-          <div v-if="takenGoals.length > 0" class="taken-goals">
-            <span class="taken-label">Already taken:</span>
-            <span class="taken-numbers">{{ takenGoals.sort((a, b) => a - b).join(', ') }}</span>
-          </div>
-          <div class="modal-actions">
-            <button class="btn-cancel" @click="cancelTiebreaker">Cancel</button>
-            <button class="btn-confirm" @click="submitTiebreaker">Confirm Pick</button>
-          </div>
+      <BaseModal v-model:modelValue="showTiebreaker" title="Stanley Cup Final Tiebreaker" size="sm" @close="cancelTiebreaker">
+        <p class="modal-desc">Predict the total number of goals scored in the entire Final series. In case of a tie on the leaderboard, the closest prediction without going over wins.</p>
+        <div class="modal-field">
+          <label>Total Goals in Series</label>
+          <input
+            type="number"
+            v-model.number="tiebreakerGoals"
+            min="1"
+            placeholder="e.g. 35"
+            @keyup.enter="submitTiebreaker"
+            autofocus
+          />
         </div>
-      </div>
+        <div v-if="tiebreakerError" class="modal-error">{{ tiebreakerError }}</div>
+        <div v-if="takenGoals.length > 0" class="taken-goals">
+          <span class="taken-label">Already taken:</span>
+          <span class="taken-numbers">{{ takenGoals.sort((a, b) => a - b).join(', ') }}</span>
+        </div>
+        <template #footer>
+          <BaseButton variant="secondary" @click="cancelTiebreaker">Cancel</BaseButton>
+          <BaseButton variant="primary" @click="submitTiebreaker">Confirm Pick</BaseButton>
+        </template>
+      </BaseModal>
     </template>
   </div>
 </template>
@@ -539,49 +533,7 @@ function getRoundLabel(roundNumber) {
   border-color: var(--text-secondary);
 }
 
-/* Help modal */
-.help-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-}
-
-.help-modal {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px;
-  width: 280px;
-  position: relative;
-}
-
-.help-close {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 1.4rem;
-  cursor: pointer;
-  line-height: 1;
-}
-
-.help-close:hover {
-  color: var(--text-primary);
-}
-
-.help-title {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 16px;
-}
-
+/* Help modal inner */
 .help-example {
   margin-bottom: 14px;
 }
@@ -804,33 +756,7 @@ function getRoundLabel(roundNumber) {
   min-width: 160px;
 }
 
-/* Tiebreaker modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-}
-
-.modal {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 30px;
-  width: 100%;
-  max-width: 400px;
-  margin: 20px;
-}
-
-.modal h3 {
-  font-size: 1.2rem;
-  color: var(--accent);
-  margin-bottom: 10px;
-}
-
+/* Tiebreaker modal inner */
 .modal-desc {
   font-size: 0.85rem;
   color: var(--text-secondary);
@@ -885,40 +811,6 @@ function getRoundLabel(roundNumber) {
 .taken-numbers {
   color: var(--text-secondary);
   font-weight: 600;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.btn-cancel {
-  flex: 1;
-  padding: 10px;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  border-radius: 8px;
-  font-size: 0.9rem;
-}
-
-.btn-cancel:hover {
-  border-color: var(--text-secondary);
-}
-
-.btn-confirm {
-  flex: 1;
-  padding: 10px;
-  background: var(--accent);
-  color: var(--bg-primary);
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.btn-confirm:hover {
-  background: var(--accent-light);
 }
 
 @media (max-width: 1100px) {

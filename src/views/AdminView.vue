@@ -5,7 +5,27 @@ import { useBracketStore } from '../stores/bracket'
 import { nhlUrl } from '../lib/nhlApi'
 import { getLogoUrl } from '../lib/logos'
 import { supabase } from '../lib/supabase'
-import ZamboniLoader from '../components/ZamboniLoader.vue'
+import ZamboniLoader from '../components/ui/ZamboniLoader.vue'
+import BaseButton from '../components/ui/BaseButton.vue'
+import BaseTabs from '../components/ui/BaseTabs.vue'
+import BaseCard from '../components/ui/BaseCard.vue'
+import BaseButtonGroup from '../components/ui/BaseButtonGroup.vue'
+
+const roundOptions = [
+  { value: 1, label: 'R1' },
+  { value: 2, label: 'R2' },
+  { value: 3, label: 'CF' },
+  { value: 4, label: 'Final' },
+]
+const conferenceOptions = [
+  { value: 'Western', label: 'Western' },
+  { value: 'Eastern', label: 'Eastern' },
+]
+
+const adminTabs = [
+  { key: 'bracket', label: 'Bracket' },
+  { key: 'users', label: 'Users' }
+]
 
 const auth = useAuthStore()
 const bracket = useBracketStore()
@@ -348,34 +368,29 @@ function formatDeadline(dateStr) {
   <div class="admin-page">
     <h1>Admin Panel</h1>
 
-    <!-- Tabs -->
-    <div class="admin-tabs">
-      <button class="admin-tab" :class="{ active: activeTab === 'bracket' }" @click="activeTab = 'bracket'">Bracket</button>
-      <button class="admin-tab" :class="{ active: activeTab === 'users' }" @click="activeTab = 'users'">Users</button>
-    </div>
-
-    <!-- Users Tab -->
-    <div v-if="activeTab === 'users'" class="users-section">
-      <ZamboniLoader v-if="usersLoading" message="Loading users..." />
-      <div v-else class="users-list">
-        <div v-for="user in allUsers" :key="user.id" class="user-row">
-          <div class="user-info">
-            <span class="user-name">{{ user.display_name || 'Unknown' }}</span>
-            <span v-if="user.is_admin" class="admin-badge">Admin</span>
+    <BaseTabs v-model="activeTab" :tabs="adminTabs">
+      <template #users>
+        <div class="users-section">
+          <ZamboniLoader v-if="usersLoading" message="Loading users..." />
+          <div v-else class="users-list">
+            <div v-for="user in allUsers" :key="user.id" class="user-row">
+              <div class="user-info">
+                <span class="user-name">{{ user.display_name || 'Unknown' }}</span>
+                <span v-if="user.is_admin" class="admin-badge">Admin</span>
+              </div>
+              <BaseButton
+                :variant="user.is_active !== false ? 'success' : 'danger'"
+                size="sm"
+                @click="toggleUserActive(user)"
+              >
+                {{ user.is_active !== false ? 'Active' : 'Inactive' }}
+              </BaseButton>
+            </div>
           </div>
-          <button
-            class="btn-sm"
-            :class="user.is_active !== false ? 'btn-active-user' : 'btn-inactive-user'"
-            @click="toggleUserActive(user)"
-          >
-            {{ user.is_active !== false ? 'Active' : 'Inactive' }}
-          </button>
         </div>
-      </div>
-    </div>
+      </template>
 
-    <!-- Bracket Tab -->
-    <template v-if="activeTab === 'bracket'">
+      <template #bracket>
 
     <!-- Season info -->
     <div class="season-bar">
@@ -389,42 +404,24 @@ function formatDeadline(dateStr) {
       </div>
       <div v-if="showNewSeason" class="new-season-form">
         <input type="number" v-model.number="newSeasonYear" min="2020" max="2099" placeholder="Year" />
-        <button class="btn-sm btn-save" @click="handleCreateSeason" :disabled="creatingSeason">
+        <BaseButton variant="primary" size="sm" @click="handleCreateSeason" :disabled="creatingSeason">
           {{ creatingSeason ? 'Creating...' : 'Create' }}
-        </button>
-        <button class="btn-sm" @click="showNewSeason = false">Cancel</button>
+        </BaseButton>
+        <BaseButton variant="secondary" size="sm" @click="showNewSeason = false">Cancel</BaseButton>
       </div>
-      <button v-else class="btn-sm" @click="showNewSeason = true">New Season</button>
+      <BaseButton v-else variant="secondary" size="sm" @click="showNewSeason = true">New Season</BaseButton>
     </div>
 
     <!-- Round & Conference selector -->
     <div class="controls">
       <div class="control-group">
         <label>Round</label>
-        <div class="btn-group">
-          <button
-            v-for="r in [1, 2, 3, 4]"
-            :key="r"
-            :class="{ active: selectedRound === r }"
-            @click="selectedRound = r"
-          >
-            {{ r === 4 ? 'Final' : r === 3 ? 'CF' : 'R' + r }}
-          </button>
-        </div>
+        <BaseButtonGroup v-model="selectedRound" :options="roundOptions" size="sm" />
       </div>
 
       <div class="control-group" v-if="selectedRound < 4">
         <label>Conference</label>
-        <div class="btn-group">
-          <button
-            v-for="c in ['Western', 'Eastern']"
-            :key="c"
-            :class="{ active: selectedConference === c }"
-            @click="selectedConference = c"
-          >
-            {{ c }}
-          </button>
-        </div>
+        <BaseButtonGroup v-model="selectedConference" :options="conferenceOptions" size="sm" />
       </div>
     </div>
 
@@ -437,9 +434,9 @@ function formatDeadline(dateStr) {
             {{ currentRound.is_active ? 'Active' : 'Inactive' }}
           </span>
         </div>
-        <button class="btn-sm" @click="toggleRoundActive">
+        <BaseButton variant="secondary" size="sm" @click="toggleRoundActive">
           {{ currentRound.is_active ? 'Deactivate' : 'Activate' }}
-        </button>
+        </BaseButton>
       </div>
 
       <div class="setting-row">
@@ -449,10 +446,10 @@ function formatDeadline(dateStr) {
         </div>
         <div v-if="editingDeadline" class="deadline-edit">
           <input type="datetime-local" v-model="deadlineInput" />
-          <button class="btn-sm btn-save" @click="saveDeadline">Save</button>
-          <button class="btn-sm" @click="editingDeadline = false">Cancel</button>
+          <BaseButton variant="primary" size="sm" @click="saveDeadline">Save</BaseButton>
+          <BaseButton variant="secondary" size="sm" @click="editingDeadline = false">Cancel</BaseButton>
         </div>
-        <button v-else class="btn-sm" @click="startEditDeadline">Edit</button>
+        <BaseButton v-else variant="secondary" size="sm" @click="startEditDeadline">Edit</BaseButton>
       </div>
 
       <div class="setting-row">
@@ -462,10 +459,10 @@ function formatDeadline(dateStr) {
         </div>
         <div v-if="editingPoints" class="deadline-edit">
           <input type="number" v-model.number="pointsInput" min="1" max="20" style="width: 80px;" />
-          <button class="btn-sm btn-save" @click="savePoints">Save</button>
-          <button class="btn-sm" @click="editingPoints = false">Cancel</button>
+          <BaseButton variant="primary" size="sm" @click="savePoints">Save</BaseButton>
+          <BaseButton variant="secondary" size="sm" @click="editingPoints = false">Cancel</BaseButton>
         </div>
-        <button v-else class="btn-sm" @click="startEditPoints">Edit</button>
+        <BaseButton v-else variant="secondary" size="sm" @click="startEditPoints">Edit</BaseButton>
       </div>
     </div>
 
@@ -474,12 +471,12 @@ function formatDeadline(dateStr) {
       <div class="section-header">
         <h2>Matchups</h2>
         <div class="section-actions">
-          <button class="btn-import" @click="handleImportFromNHL" :disabled="importingFromNHL">
+          <BaseButton variant="info" @click="handleImportFromNHL" :disabled="importingFromNHL">
             {{ importingFromNHL ? 'Importing...' : 'Import from NHL' }}
-          </button>
-          <button class="btn-add" @click="showAddMatchup = !showAddMatchup">
+          </BaseButton>
+          <BaseButton variant="primary" @click="showAddMatchup = !showAddMatchup">
             {{ showAddMatchup ? 'Cancel' : '+ Add Matchup' }}
-          </button>
+          </BaseButton>
         </div>
       </div>
       <div v-if="importError" class="import-error">{{ importError }}</div>
@@ -521,7 +518,7 @@ function formatDeadline(dateStr) {
             <label>Bracket Position</label>
             <input type="number" v-model.number="newMatchup.bracket_position" min="1" max="8" />
           </div>
-          <button class="btn-primary" @click="addMatchup">Add Matchup</button>
+          <BaseButton variant="primary" @click="addMatchup">Add Matchup</BaseButton>
         </div>
       </div>
 
@@ -530,11 +527,12 @@ function formatDeadline(dateStr) {
         No matchups for this round yet. Click "+ Add Matchup" to create one.
       </div>
 
-      <div
+      <BaseCard
         v-for="(matchup, idx) in currentMatchups"
         :key="matchup.id"
-        class="matchup-admin-card"
-        :class="{ 'drag-over': dragOverIndex === idx, 'dragging': dragIndex === idx }"
+        padding="md"
+        radius="md"
+        :class="['matchup-admin-card', { 'drag-over': dragOverIndex === idx, 'dragging': dragIndex === idx }]"
         draggable="true"
         @dragstart="onDragStart(idx)"
         @dragover="onDragOver($event, idx)"
@@ -579,8 +577,8 @@ function formatDeadline(dateStr) {
                 <input type="number" v-model.number="editForm.bracket_position" min="1" max="8" />
               </div>
               <div class="edit-actions">
-                <button class="btn-sm btn-save" @click="saveEdit(matchup.id)">Save</button>
-                <button class="btn-sm" @click="cancelEdit">Cancel</button>
+                <BaseButton variant="primary" size="sm" @click="saveEdit(matchup.id)">Save</BaseButton>
+                <BaseButton variant="secondary" size="sm" @click="cancelEdit">Cancel</BaseButton>
               </div>
             </div>
           </div>
@@ -602,13 +600,13 @@ function formatDeadline(dateStr) {
                   min="0" max="4"
                 />
               </div>
-              <button
-                class="btn-winner"
-                :class="{ won: matchup.winner_id === matchup.team_home_id }"
+              <BaseButton
+                :variant="matchup.winner_id === matchup.team_home_id ? 'success' : 'ghost'"
+                size="sm"
                 @click="setWinner(matchup, matchup.team_home_id)"
               >
                 Winner
-              </button>
+              </BaseButton>
             </div>
 
             <span class="vs">vs</span>
@@ -626,13 +624,13 @@ function formatDeadline(dateStr) {
                   min="0" max="4"
                 />
               </div>
-              <button
-                class="btn-winner"
-                :class="{ won: matchup.winner_id === matchup.team_away_id }"
+              <BaseButton
+                :variant="matchup.winner_id === matchup.team_away_id ? 'success' : 'ghost'"
+                size="sm"
                 @click="setWinner(matchup, matchup.team_away_id)"
               >
                 Winner
-              </button>
+              </BaseButton>
             </div>
           </div>
 
@@ -649,14 +647,15 @@ function formatDeadline(dateStr) {
           </div>
 
           <div class="matchup-actions">
-            <button class="btn-edit" @click="startEdit(matchup)">Edit</button>
-            <button class="btn-delete" @click="removeMatchup(matchup.id)">Delete</button>
+            <BaseButton variant="secondary" size="sm" @click="startEdit(matchup)">Edit</BaseButton>
+            <BaseButton variant="danger" size="sm" @click="removeMatchup(matchup.id)">Delete</BaseButton>
           </div>
         </template>
-      </div>
+      </BaseCard>
     </div>
 
-    </template><!-- end bracket tab -->
+      </template>
+    </BaseTabs>
   </div>
 </template>
 
@@ -664,33 +663,6 @@ function formatDeadline(dateStr) {
 .admin-page {
   max-width: 900px;
   margin: 0 auto;
-}
-
-.admin-tabs {
-  display: flex;
-  gap: 0;
-  margin-bottom: 24px;
-  border-bottom: 1px solid var(--border);
-}
-
-.admin-tab {
-  padding: 10px 24px;
-  background: none;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 600;
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
-  margin-bottom: -1px;
-}
-
-.admin-tab:hover {
-  color: var(--text-primary);
-}
-
-.admin-tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
 }
 
 .season-bar {
@@ -789,38 +761,6 @@ h2 {
   margin-bottom: 8px;
 }
 
-.btn-group {
-  display: flex;
-  gap: 0;
-}
-
-.btn-group button {
-  padding: 8px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.btn-group button:first-child {
-  border-radius: 6px 0 0 6px;
-}
-
-.btn-group button:last-child {
-  border-radius: 0 6px 6px 0;
-}
-
-.btn-group button:not(:last-child) {
-  border-right: none;
-}
-
-.btn-group button.active {
-  background: var(--accent);
-  color: var(--bg-primary);
-  border-color: var(--accent);
-}
 
 /* Round settings */
 .round-settings {
@@ -873,27 +813,6 @@ h2 {
   color: var(--text-muted);
 }
 
-.btn-sm {
-  padding: 6px 14px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  border-radius: 6px;
-  font-size: 0.8rem;
-  transition: all 0.2s;
-}
-
-.btn-sm:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.btn-save {
-  background: var(--accent);
-  color: var(--bg-primary);
-  border-color: var(--accent);
-}
-
 .deadline-edit {
   display: flex;
   gap: 8px;
@@ -925,35 +844,6 @@ h2 {
 .section-actions {
   display: flex;
   gap: 8px;
-}
-
-.btn-add {
-  padding: 8px 16px;
-  background: var(--accent);
-  color: var(--bg-primary);
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-
-.btn-import {
-  padding: 8px 16px;
-  background: transparent;
-  border: 1px solid var(--info);
-  color: var(--info);
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  transition: all 0.2s;
-}
-
-.btn-import:hover:not(:disabled) {
-  background: rgba(33, 150, 243, 0.1);
-}
-
-.btn-import:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .import-error {
@@ -1017,23 +907,12 @@ h2 {
   min-width: 80px;
 }
 
-.btn-primary {
-  padding: 8px 20px;
-  background: var(--accent);
-  color: var(--bg-primary);
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  white-space: nowrap;
-}
-
 /* Admin matchup cards */
 .matchup-admin-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px 20px;
   margin-bottom: 12px;
+}
+
+.matchup-admin-card :deep(.card-body) {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1113,28 +992,6 @@ h2 {
   font-size: 0.85rem;
 }
 
-.btn-winner {
-  padding: 4px 10px;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  border-radius: 4px;
-  font-size: 0.75rem;
-  transition: all 0.2s;
-}
-
-.btn-winner:hover {
-  border-color: var(--success);
-  color: var(--success);
-}
-
-.btn-winner.won {
-  background: rgba(76, 175, 80, 0.15);
-  border-color: var(--success);
-  color: var(--success);
-  font-weight: 600;
-}
-
 .total-goals-input {
   display: flex;
   align-items: center;
@@ -1177,34 +1034,6 @@ h2 {
 .matchup-actions {
   display: flex;
   gap: 8px;
-}
-
-.btn-edit {
-  padding: 6px 12px;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  border-radius: 6px;
-  font-size: 0.8rem;
-}
-
-.btn-edit:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.btn-delete {
-  padding: 6px 12px;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  border-radius: 6px;
-  font-size: 0.8rem;
-}
-
-.btn-delete:hover {
-  border-color: var(--danger);
-  color: var(--danger);
 }
 
 /* Users section */
@@ -1253,18 +1082,6 @@ h2 {
   border-radius: 20px;
   background: rgba(201, 168, 76, 0.15);
   color: var(--accent);
-}
-
-.btn-active-user {
-  background: rgba(76, 175, 80, 0.15) !important;
-  border-color: var(--success) !important;
-  color: var(--success) !important;
-}
-
-.btn-inactive-user {
-  background: rgba(244, 67, 54, 0.1) !important;
-  border-color: var(--danger) !important;
-  color: var(--danger) !important;
 }
 
 @media (max-width: 600px) {

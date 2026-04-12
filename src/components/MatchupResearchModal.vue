@@ -2,7 +2,9 @@
 import { ref, watch } from 'vue'
 import { useResearchStore } from '../stores/research'
 import { getLogoUrl } from '../lib/logos'
-import ZamboniLoader from './ZamboniLoader.vue'
+import ZamboniLoader from './ui/ZamboniLoader.vue'
+import BaseModal from './ui/BaseModal.vue'
+import BaseButton from './ui/BaseButton.vue'
 
 const props = defineProps({
   matchup: { type: Object, default: null },
@@ -25,10 +27,8 @@ watch(() => props.visible, async (show) => {
 </script>
 
 <template>
-  <div v-if="visible" class="modal-overlay" @click.self="emit('close')">
-    <div class="research-modal">
-      <button class="modal-close" @click="emit('close')">&times;</button>
-
+  <BaseModal :modelValue="visible" @update:modelValue="$emit('close')" size="md">
+    <template #header>
       <div v-if="matchup" class="modal-header">
         <div class="header-team">
           <img :src="getLogoUrl(matchup.team_home.abbreviation)" :alt="matchup.team_home.abbreviation" class="header-logo" />
@@ -40,6 +40,7 @@ watch(() => props.visible, async (show) => {
           <span class="header-abbrev">{{ matchup.team_away.abbreviation }}</span>
         </div>
       </div>
+    </template>
 
       <!-- Standings comparison -->
       <div v-if="data?.homeStanding && data?.awayStanding" class="standings-compare">
@@ -65,7 +66,7 @@ watch(() => props.visible, async (show) => {
 
       <div v-else-if="research.error" class="error-state">
         <p>{{ research.error }}</p>
-        <button class="btn-retry" @click="data = null; research.fetchMatchupResearch(matchup.team_home.abbreviation, matchup.team_away.abbreviation).then(r => data = r)">Retry</button>
+        <BaseButton variant="secondary" size="sm" @click="data = null; research.fetchMatchupResearch(matchup.team_home.abbreviation, matchup.team_away.abbreviation).then(r => data = r)">Retry</BaseButton>
       </div>
 
       <div v-else-if="data" class="modal-body">
@@ -120,57 +121,17 @@ watch(() => props.visible, async (show) => {
           </div>
         </section>
       </div>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-}
-
-.research-modal {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px;
-  width: 100%;
-  max-width: 620px;
-  margin: 20px;
-  max-height: 85vh;
-  overflow-y: auto;
-  position: relative;
-}
-
-.modal-close {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 1.6rem;
-  cursor: pointer;
-  line-height: 1;
-  padding: 4px;
-}
-
-.modal-close:hover {
-  color: var(--text-primary);
-}
-
 /* Header */
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 20px;
+  flex: 1;
   margin-bottom: 16px;
 }
 
@@ -276,28 +237,6 @@ watch(() => props.visible, async (show) => {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
-}
-
-.error-state {
-  text-align: center;
-  padding: 30px 0;
-  color: var(--danger);
-  font-size: 0.9rem;
-}
-
-.btn-retry {
-  margin-top: 12px;
-  padding: 8px 20px;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.btn-retry:hover {
-  border-color: var(--text-secondary);
 }
 
 /* Sections */
@@ -483,11 +422,6 @@ watch(() => props.visible, async (show) => {
 }
 
 @media (max-width: 768px) {
-  .research-modal {
-    padding: 16px;
-    max-height: 90vh;
-  }
-
   .header-logo {
     width: 36px;
     height: 36px;

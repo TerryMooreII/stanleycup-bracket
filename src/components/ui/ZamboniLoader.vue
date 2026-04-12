@@ -1,5 +1,5 @@
 <script setup>
-import zamboniImg from '../assets/zamboni.png'
+import zamboniImg from '../../assets/zamboni.png'
 
 defineProps({
   message: {

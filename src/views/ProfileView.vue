@@ -2,7 +2,15 @@
 import { onMounted, ref, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../lib/supabase'
-import ZamboniLoader from '../components/ZamboniLoader.vue'
+import ZamboniLoader from '../components/ui/ZamboniLoader.vue'
+import BaseButton from '../components/ui/BaseButton.vue'
+import BaseTabs from '../components/ui/BaseTabs.vue'
+import BaseCard from '../components/ui/BaseCard.vue'
+
+const profileTabs = [
+  { key: 'profile', label: 'Profile' },
+  { key: 'stats', label: 'Stats' }
+]
 
 const auth = useAuthStore()
 
@@ -138,35 +146,30 @@ async function changePassword() {
     <h1>Profile</h1>
 
     <!-- Tabs -->
-    <div class="tabs">
-      <button class="tab" :class="{ active: activeTab === 'profile' }" @click="activeTab = 'profile'">Profile</button>
-      <button class="tab" :class="{ active: activeTab === 'stats' }" @click="activeTab = 'stats'">Stats</button>
-    </div>
-
-    <!-- Profile Tab -->
-    <div v-if="activeTab === 'profile'">
+    <BaseTabs v-model="activeTab" :tabs="profileTabs">
+      <template #profile>
       <!-- Display Name -->
-      <div class="section">
+      <BaseCard class="section" padding="md" radius="md">
         <h2>Display Name</h2>
         <form @submit.prevent="saveDisplayName" class="inline-form">
           <input v-model="displayName" type="text" placeholder="Your display name" />
-          <button type="submit" class="btn-primary" :disabled="saving">
+          <BaseButton type="submit" variant="primary" :disabled="saving">
             {{ saving ? 'Saving...' : 'Save' }}
-          </button>
+          </BaseButton>
         </form>
         <div v-if="message" :class="['msg', message.startsWith('Error') ? 'error' : 'success']">
           {{ message }}
         </div>
-      </div>
+      </BaseCard>
 
       <!-- Email (read-only) -->
-      <div class="section">
+      <BaseCard class="section" padding="md" radius="md">
         <h2>Email</h2>
         <div class="readonly-field">{{ auth.user?.email }}</div>
-      </div>
+      </BaseCard>
 
       <!-- Change Password -->
-      <div class="section">
+      <BaseCard class="section" padding="md" radius="md">
         <h2>Change Password</h2>
         <form @submit.prevent="changePassword" class="stack-form">
           <div class="field">
@@ -177,65 +180,64 @@ async function changePassword() {
             <label>Confirm Password</label>
             <input v-model="confirmPassword" type="password" placeholder="Confirm password" />
           </div>
-          <button type="submit" class="btn-primary" :disabled="savingPassword">
+          <BaseButton type="submit" variant="primary" :disabled="savingPassword">
             {{ savingPassword ? 'Updating...' : 'Update Password' }}
-          </button>
+          </BaseButton>
         </form>
         <div v-if="passwordMessage" :class="['msg', passwordMessage.startsWith('Error') ? 'error' : 'success']">
           {{ passwordMessage }}
         </div>
-      </div>
-    </div>
+      </BaseCard>
+      </template>
 
-    <!-- Stats Tab -->
-    <div v-if="activeTab === 'stats'">
+      <template #stats>
       <div v-if="!loading">
         <h2 class="section-title">This Season</h2>
         <div class="stats-grid">
-          <div class="stat-card">
+          <BaseCard padding="md" radius="md">
             <div class="stat-value">{{ currentStats.points }}</div>
             <div class="stat-label">Points</div>
-          </div>
-          <div class="stat-card">
+          </BaseCard>
+          <BaseCard padding="md" radius="md">
             <div class="stat-value">{{ currentStats.correct }}</div>
             <div class="stat-label">Correct</div>
-          </div>
-          <div class="stat-card">
+          </BaseCard>
+          <BaseCard padding="md" radius="md">
             <div class="stat-value">{{ accuracy }}</div>
             <div class="stat-label">Accuracy</div>
-          </div>
-          <div class="stat-card">
+          </BaseCard>
+          <BaseCard padding="md" radius="md">
             <div class="stat-value">{{ currentStats.total }}</div>
             <div class="stat-label">Total Picks</div>
-          </div>
+          </BaseCard>
         </div>
 
         <!-- Career Stats -->
         <div class="career-section">
           <h2 class="section-title">Career</h2>
           <div class="stats-grid">
-            <div class="stat-card">
+            <BaseCard padding="md" radius="md">
               <div class="stat-value">{{ careerStats.points }}</div>
               <div class="stat-label">All-Time Pts</div>
-            </div>
-            <div class="stat-card">
+            </BaseCard>
+            <BaseCard padding="md" radius="md">
               <div class="stat-value">{{ careerStats.correct }}/{{ careerStats.total }}</div>
               <div class="stat-label">Correct</div>
-            </div>
-            <div class="stat-card">
+            </BaseCard>
+            <BaseCard padding="md" radius="md">
               <div class="stat-value">{{ careerAccuracy }}</div>
               <div class="stat-label">Accuracy</div>
-            </div>
-            <div class="stat-card">
+            </BaseCard>
+            <BaseCard padding="md" radius="md">
               <div class="stat-value">{{ careerStats.seasons }}</div>
               <div class="stat-label">Seasons</div>
-            </div>
+            </BaseCard>
           </div>
         </div>
 
         <!-- Round Performance -->
         <h2 class="section-title">Round Performance</h2>
-        <div class="section round-section">
+        <BaseCard class="section round-section" padding="md" radius="md">
           <div class="round-bars">
             <div v-for="round in roundPerformance" :key="round.label" class="round-bar-row">
               <span class="round-bar-label">{{ round.label }}</span>
@@ -251,10 +253,10 @@ async function changePassword() {
               <span class="round-bar-count">{{ round.correct }}/{{ round.decided }}</span>
             </div>
           </div>
-        </div>
+        </BaseCard>
 
         <!-- Season History -->
-        <div v-if="seasonBreakdown.length > 0" class="section history-section">
+        <BaseCard v-if="seasonBreakdown.length > 0" class="section history-section" padding="md" radius="md">
           <h2>Season History</h2>
           <div class="history-table">
             <div class="history-row history-header">
@@ -272,10 +274,11 @@ async function changePassword() {
               <span class="hist-acc">{{ s.accuracy != null ? s.accuracy + '%' : '—' }}</span>
             </div>
           </div>
-        </div>
+        </BaseCard>
       </div>
       <ZamboniLoader v-else message="Loading stats..." />
-    </div>
+      </template>
+    </BaseTabs>
   </div>
 </template>
 
@@ -289,33 +292,6 @@ h1 {
   font-size: 1.6rem;
   margin-bottom: 16px;
   color: var(--text-primary);
-}
-
-.tabs {
-  display: flex;
-  gap: 0;
-  margin-bottom: 24px;
-  border-bottom: 1px solid var(--border);
-}
-
-.tab {
-  padding: 10px 24px;
-  background: none;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 600;
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
-  margin-bottom: -1px;
-}
-
-.tab:hover {
-  color: var(--text-primary);
-}
-
-.tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
 }
 
 .loading {
@@ -337,11 +313,7 @@ h2 {
   margin-bottom: 32px;
 }
 
-.stat-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px;
+.stats-grid :deep(.card-body) {
   text-align: center;
 }
 
@@ -482,10 +454,6 @@ h2 {
 }
 
 .section {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px;
   margin-bottom: 16px;
 }
 
@@ -534,18 +502,6 @@ input:focus {
   color: var(--text-muted);
   font-size: 0.95rem;
 }
-
-.btn-primary {
-  padding: 10px 20px;
-  background: var(--accent);
-  color: var(--bg-primary);
-  font-weight: 600;
-  font-size: 0.9rem;
-  border-radius: 8px;
-  white-space: nowrap;
-}
-.btn-primary:hover { background: var(--accent-light); }
-.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .msg {
   margin-top: 10px;

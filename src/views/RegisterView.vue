@@ -2,6 +2,8 @@
 import { ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
+import BaseButton from '../components/ui/BaseButton.vue'
+import BaseCard from '../components/ui/BaseCard.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -38,7 +40,7 @@ async function handleRegister() {
 
 <template>
   <div class="auth-page">
-    <div class="auth-card">
+    <BaseCard padding="lg" radius="lg" class="auth-card">
       <template v-if="!success">
         <h1>Register</h1>
         <p class="subtitle">Join the Stanley Cup Bracket challenge</p>
@@ -61,9 +63,9 @@ async function handleRegister() {
             <input v-model="confirmPassword" type="password" required placeholder="Confirm password" />
           </div>
           <div v-if="error" class="error">{{ error }}</div>
-          <button type="submit" class="btn-primary" :disabled="loading">
+          <BaseButton type="submit" variant="primary" block :loading="loading">
             {{ loading ? 'Creating account...' : 'Create Account' }}
-          </button>
+          </BaseButton>
         </form>
 
         <p class="switch">
@@ -74,11 +76,11 @@ async function handleRegister() {
       <template v-else>
         <h1>Check Your Email</h1>
         <p class="subtitle">We've sent a confirmation link to <strong>{{ email }}</strong>. Please confirm your email to continue.</p>
-        <router-link to="/login" class="btn-primary" style="display: block; text-align: center; margin-top: 20px;">
+        <BaseButton variant="primary" block style="margin-top: 20px;" @click="router.push('/login')">
           Go to Sign In
-        </router-link>
+        </BaseButton>
       </template>
-    </div>
+    </BaseCard>
   </div>
 </template>
 
@@ -91,10 +93,6 @@ async function handleRegister() {
 }
 
 .auth-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 40px;
   width: 100%;
   max-width: 420px;
 }
@@ -146,25 +144,6 @@ input:focus {
   border-radius: 8px;
   font-size: 0.85rem;
   margin-bottom: 16px;
-}
-
-.btn-primary {
-  width: 100%;
-  padding: 12px;
-  background: var(--accent);
-  color: var(--bg-primary);
-  font-weight: 600;
-  font-size: 1rem;
-  border-radius: 8px;
-  transition: background 0.2s;
-  text-decoration: none;
-}
-.btn-primary:hover {
-  background: var(--accent-light);
-}
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .switch {

@@ -93,3 +93,10 @@ input, select {
   font-family: inherit;
   font-size: inherit;
 }
+
+.error-state {
+  text-align: center;
+  padding: 30px 0;
+  color: var(--danger);
+  font-size: 0.9rem;
+}

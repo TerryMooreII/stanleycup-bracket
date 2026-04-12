@@ -3,7 +3,9 @@ import { ref, watch } from 'vue'
 import { nhlUrl } from '../lib/nhlApi'
 import { useBracketStore } from '../stores/bracket'
 import { getLogoUrl } from '../lib/logos'
-import ZamboniLoader from './ZamboniLoader.vue'
+import ZamboniLoader from './ui/ZamboniLoader.vue'
+import BaseModal from './ui/BaseModal.vue'
+import BaseButton from './ui/BaseButton.vue'
 
 const bracket = useBracketStore()
 
@@ -212,22 +214,8 @@ watch(() => props.visible, (show) => {
 </script>
 
 <template>
-  <div v-if="visible" class="modal-overlay" @click.self="emit('close')">
-    <div class="game-modal">
-      <button class="modal-close" @click="emit('close')">&times;</button>
-
-      <!-- Loading -->
-      <ZamboniLoader v-if="loading" message="Loading game data..." />
-
-      <!-- Error -->
-      <div v-else-if="error" class="error-state">
-        <p>{{ error }}</p>
-        <button class="btn-retry" @click="fetchGameData(gameId)">Retry</button>
-      </div>
-
-      <!-- Game Data -->
-      <template v-else-if="data">
-        <!-- Header: Score -->
+  <BaseModal :modelValue="visible" @update:modelValue="$emit('close')" size="md">
+      <template v-if="data && !loading && !error" #header>
         <div class="game-header">
           <div class="header-team">
             <img :src="data.awayTeam.logo" :alt="data.awayTeam.abbrev" class="header-logo" />
@@ -244,7 +232,19 @@ watch(() => props.visible, (show) => {
             <img :src="data.homeTeam.logo" :alt="data.homeTeam.abbrev" class="header-logo" />
           </div>
         </div>
+      </template>
 
+      <!-- Loading -->
+      <ZamboniLoader v-if="loading" message="Loading game data..." />
+
+      <!-- Error -->
+      <div v-else-if="error" class="error-state">
+        <p>{{ error }}</p>
+        <BaseButton variant="secondary" size="sm" @click="fetchGameData(gameId)">Retry</BaseButton>
+      </div>
+
+      <!-- Game Data -->
+      <template v-else-if="data">
         <!-- SOG -->
         <div v-if="data.awayTeam.sog != null && data.homeTeam.sog != null" class="sog-bar">
           <span class="sog-val">{{ data.awayTeam.sog }}</span>
@@ -327,51 +327,10 @@ watch(() => props.visible, (show) => {
           </div>
         </section>
       </template>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-}
-
-.game-modal {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px;
-  width: 100%;
-  max-width: 600px;
-  margin: 20px;
-  max-height: 85vh;
-  overflow-y: auto;
-  position: relative;
-}
-
-.modal-close {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 1.6rem;
-  cursor: pointer;
-  line-height: 1;
-  padding: 4px;
-}
-
-.modal-close:hover {
-  color: var(--text-primary);
-}
-
 /* Loading / Error */
 .loading-state {
   display: flex;
@@ -396,34 +355,12 @@ watch(() => props.visible, (show) => {
   to { transform: rotate(360deg); }
 }
 
-.error-state {
-  text-align: center;
-  padding: 30px 0;
-  color: var(--danger);
-  font-size: 0.9rem;
-}
-
-.btn-retry {
-  margin-top: 12px;
-  padding: 8px 20px;
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.btn-retry:hover {
-  border-color: var(--text-secondary);
-}
-
 /* Header */
 .game-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  width: 100%;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
 }
@@ -796,11 +733,6 @@ watch(() => props.visible, (show) => {
 }
 
 @media (max-width: 768px) {
-  .game-modal {
-    padding: 16px;
-    max-height: 90vh;
-  }
-
   .header-logo {
     width: 32px;
     height: 32px;

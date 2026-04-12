@@ -2,6 +2,8 @@
 import { ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
+import BaseButton from '../components/ui/BaseButton.vue'
+import BaseCard from '../components/ui/BaseCard.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -27,7 +29,7 @@ async function handleLogin() {
 
 <template>
   <div class="auth-page">
-    <div class="auth-card">
+    <BaseCard padding="lg" radius="lg" class="auth-card">
       <h1>Sign In</h1>
       <p class="subtitle">Welcome back to the Stanley Cup Bracket</p>
 
@@ -41,15 +43,15 @@ async function handleLogin() {
           <input v-model="password" type="password" required placeholder="Your password" />
         </div>
         <div v-if="error" class="error">{{ error }}</div>
-        <button type="submit" class="btn-primary" :disabled="loading">
+        <BaseButton type="submit" variant="primary" block :loading="loading">
           {{ loading ? 'Signing in...' : 'Sign In' }}
-        </button>
+        </BaseButton>
       </form>
 
       <p class="switch">
         Don't have an account? <router-link to="/register">Register</router-link>
       </p>
-    </div>
+    </BaseCard>
   </div>
 </template>
 
@@ -62,10 +64,6 @@ async function handleLogin() {
 }
 
 .auth-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 40px;
   width: 100%;
   max-width: 420px;
 }
@@ -117,24 +115,6 @@ input:focus {
   border-radius: 8px;
   font-size: 0.85rem;
   margin-bottom: 16px;
-}
-
-.btn-primary {
-  width: 100%;
-  padding: 12px;
-  background: var(--accent);
-  color: var(--bg-primary);
-  font-weight: 600;
-  font-size: 1rem;
-  border-radius: 8px;
-  transition: background 0.2s;
-}
-.btn-primary:hover {
-  background: var(--accent-light);
-}
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .switch {
