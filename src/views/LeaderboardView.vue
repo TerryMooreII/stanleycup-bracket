@@ -156,6 +156,10 @@ const leaderboard = computed(() => {
     </table>
     </div>
 
+    <p v-if="leaderboard.length > 0" class="tiebreaker-note">
+      If two users end the playoffs tied on points, whoever guessed closest to the actual total Cup Final goals (without exceeding) places higher. If both went over, they tie on the tiebreaker and correct-picks count breaks it.
+    </p>
+
     <div v-else class="empty-state">
       No picks have been made yet. Be the first!
     </div>
@@ -166,6 +170,17 @@ const leaderboard = computed(() => {
 .leaderboard-page {
   max-width: 700px;
   margin: 0 auto;
+}
+
+.tiebreaker-note {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 
 h1 {
