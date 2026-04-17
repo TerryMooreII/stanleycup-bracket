@@ -89,6 +89,16 @@ export const useBracketStore = defineStore('bracket', () => {
     picks.value = data || []
   }
 
+  async function fetchAllPicksForMatchups(matchupIds) {
+    if (!matchupIds || matchupIds.length === 0) return []
+    const { data, error } = await supabase
+      .from('picks')
+      .select('user_id, matchup_id')
+      .in('matchup_id', matchupIds)
+    if (error) throw error
+    return data || []
+  }
+
   async function fetchAll(userId, year = null) {
     loading.value = true
     try {
@@ -237,7 +247,7 @@ export const useBracketStore = defineStore('bracket', () => {
     season, activeSeason, seasons, teams, rounds, matchups, picks, loading,
     isViewingCurrentSeason,
     fetchAllSeasons, fetchActiveSeason, fetchSeasonByYear,
-    fetchTeams, fetchRounds, fetchMatchups, fetchPicks, fetchAll,
+    fetchTeams, fetchRounds, fetchMatchups, fetchPicks, fetchAllPicksForMatchups, fetchAll,
     makePick, getPickForMatchup, getMatchupsForRound, getActiveRound, isDeadlinePassed,
     createMatchup, updateMatchup, deleteMatchup, updateRound, createSeason
   }

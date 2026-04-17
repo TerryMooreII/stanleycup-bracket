@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useBracketStore } from '../stores/bracket'
 import { nhlUrl } from '../lib/nhlApi'
@@ -24,7 +24,8 @@ const conferenceOptions = [
 
 const adminTabs = [
   { key: 'bracket', label: 'Bracket' },
-  { key: 'users', label: 'Users' }
+  { key: 'users', label: 'Users' },
+  { key: 'pick-status', label: 'Pick Status' }
 ]
 
 const auth = useAuthStore()
@@ -235,6 +236,64 @@ async function fetchUsers() {
   }
 }
 
+const pickStatusLoading = ref(false)
+const allPicksForRound = ref([])
+
+const activeRoundForStatus = computed(() => bracket.getActiveRound() || null)
+
+const matchupsForActiveRound = computed(() => {
+  const r = activeRoundForStatus.value
+  if (!r) return []
+  return bracket.matchups.filter(m => m.round_id === r.id)
+})
+
+const requiredCount = computed(() => matchupsForActiveRound.value.length)
+
+const pickStatusRows = computed(() => {
+  const required = requiredCount.value
+  const activeUsers = allUsers.value.filter(u => u.is_active !== false)
+  const rows = activeUsers.map(user => {
+    const pickCount = allPicksForRound.value.filter(p => p.user_id === user.id).length
+    return {
+      user,
+      pickCount,
+      required,
+      complete: required > 0 && pickCount >= required
+    }
+  })
+  rows.sort((a, b) => {
+    if (a.complete !== b.complete) return a.complete ? 1 : -1
+    return (a.user.display_name || '').localeCompare(b.user.display_name || '')
+  })
+  return rows
+})
+
+async function loadPickStatus() {
+  const round = activeRoundForStatus.value
+  if (!round) {
+    allPicksForRound.value = []
+    return
+  }
+  const matchupIds = matchupsForActiveRound.value.map(m => m.id)
+  if (matchupIds.length === 0) {
+    allPicksForRound.value = []
+    return
+  }
+  pickStatusLoading.value = true
+  try {
+    allPicksForRound.value = await bracket.fetchAllPicksForMatchups(matchupIds)
+  } catch (e) {
+    console.error('Failed to load pick status:', e)
+    allPicksForRound.value = []
+  } finally {
+    pickStatusLoading.value = false
+  }
+}
+
+watch(activeTab, (tab) => {
+  if (tab === 'pick-status') loadPickStatus()
+})
+
 async function toggleUserActive(user) {
   const newVal = !user.is_active
   const { error } = await supabase
@@ -260,6 +319,7 @@ onMounted(async () => {
     fetchUsers()
   ])
   selectedSeasonYear.value = bracket.season?.year
+  await loadPickStatus()
 })
 
 const currentRound = computed(() => {
@@ -387,6 +447,50 @@ function formatDeadline(dateStr) {
               </BaseButton>
             </div>
           </div>
+        </div>
+      </template>
+
+      <template #pick-status>
+        <div class="pick-status-section">
+          <ZamboniLoader v-if="pickStatusLoading" message="Loading pick status..." />
+          <div v-else-if="!activeRoundForStatus" class="empty-state">
+            No round is currently active. Activate a round in the Bracket tab to see pick status.
+          </div>
+          <template v-else>
+            <BaseCard padding="md" radius="md" class="pick-status-header">
+              <div class="pick-status-header-row">
+                <span class="setting-label">Round</span>
+                <span class="setting-value">{{ activeRoundForStatus.name }}</span>
+              </div>
+              <div class="pick-status-header-row">
+                <span class="setting-label">Deadline</span>
+                <span class="setting-value">{{ formatDeadline(activeRoundForStatus.pick_deadline) }}</span>
+              </div>
+              <div class="pick-status-header-row">
+                <span class="setting-label">Picks required</span>
+                <span class="setting-value">{{ requiredCount }}</span>
+              </div>
+            </BaseCard>
+
+            <div v-if="requiredCount === 0" class="empty-state">
+              No matchups have been added to this round yet.
+            </div>
+
+            <div v-else class="users-list">
+              <div v-for="row in pickStatusRows" :key="row.user.id" class="user-row">
+                <div class="user-info">
+                  <span class="user-name">{{ row.user.display_name || 'Unknown' }}</span>
+                  <span v-if="row.user.is_admin" class="admin-badge">Admin</span>
+                </div>
+                <div class="pick-status-right">
+                  <span class="pick-count">{{ row.pickCount }} / {{ row.required }}</span>
+                  <span :class="['status-badge', row.complete ? 'active' : 'inactive']">
+                    {{ row.complete ? 'Complete' : 'Incomplete' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
       </template>
 
@@ -1082,6 +1186,37 @@ h2 {
   border-radius: 20px;
   background: rgba(201, 168, 76, 0.15);
   color: var(--accent);
+}
+
+.pick-status-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pick-status-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pick-status-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.pick-status-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pick-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
 @media (max-width: 600px) {
