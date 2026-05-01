@@ -77,6 +77,21 @@ function getExpectedMatchups(roundNumber) {
   return 0
 }
 
+function getRoundSlots(roundNumber, conference) {
+  const expected = getExpectedMatchups(roundNumber)
+  const slots = new Array(expected).fill(null)
+  for (const m of getRoundMatchups(roundNumber, conference)) {
+    const pos = m.bracket_position
+    if (pos >= 1 && pos <= expected && slots[pos - 1] === null) {
+      slots[pos - 1] = m
+    } else {
+      const emptyIdx = slots.findIndex(s => s === null)
+      if (emptyIdx !== -1) slots[emptyIdx] = m
+    }
+  }
+  return slots
+}
+
 function canPickRound(roundNumber) {
   if (!auth.isLoggedIn) return false
   if (!bracket.isViewingCurrentSeason) return false
@@ -222,19 +237,17 @@ function getRoundLabel(roundNumber) {
           <div class="round round-1">
             <div class="round-label">{{ getRoundLabel(1) }}</div>
             <div class="round-matchups">
-              <template v-for="(matchup, i) in getRoundMatchups(1, 'Western')" :key="matchup.id">
+              <template v-for="(matchup, i) in getRoundSlots(1, 'Western')" :key="matchup ? matchup.id : 'empty-w1-' + i">
                 <MatchupCard
+                  v-if="matchup"
                   :matchup="matchup"
                   :pick="bracket.getPickForMatchup(matchup.id)"
                   :can-pick="canPickRound(1)"
                   @pick="handlePick"
                   @research="handleResearch"
                 />
+                <EmptyMatchupCard v-else />
               </template>
-              <EmptyMatchupCard
-                v-for="n in Math.max(0, getExpectedMatchups(1) - getRoundMatchups(1, 'Western').length)"
-                :key="'empty-w1-' + n"
-              />
             </div>
           </div>
 
@@ -242,19 +255,17 @@ function getRoundLabel(roundNumber) {
           <div class="round round-2">
             <div class="round-label">{{ getRoundLabel(2) }}</div>
             <div class="round-matchups">
-              <template v-for="matchup in getRoundMatchups(2, 'Western')" :key="matchup.id">
+              <template v-for="(matchup, i) in getRoundSlots(2, 'Western')" :key="matchup ? matchup.id : 'empty-w2-' + i">
                 <MatchupCard
+                  v-if="matchup"
                   :matchup="matchup"
                   :pick="bracket.getPickForMatchup(matchup.id)"
                   :can-pick="canPickRound(2)"
                   @pick="handlePick"
                   @research="handleResearch"
                 />
+                <EmptyMatchupCard v-else />
               </template>
-              <EmptyMatchupCard
-                v-for="n in Math.max(0, getExpectedMatchups(2) - getRoundMatchups(2, 'Western').length)"
-                :key="'empty-w2-' + n"
-              />
             </div>
           </div>
 
@@ -322,19 +333,17 @@ function getRoundLabel(roundNumber) {
           <div class="round round-2">
             <div class="round-label">{{ getRoundLabel(2) }}</div>
             <div class="round-matchups">
-              <template v-for="matchup in getRoundMatchups(2, 'Eastern')" :key="matchup.id">
+              <template v-for="(matchup, i) in getRoundSlots(2, 'Eastern')" :key="matchup ? matchup.id : 'empty-e2-' + i">
                 <MatchupCard
+                  v-if="matchup"
                   :matchup="matchup"
                   :pick="bracket.getPickForMatchup(matchup.id)"
                   :can-pick="canPickRound(2)"
                   @pick="handlePick"
                   @research="handleResearch"
                 />
+                <EmptyMatchupCard v-else />
               </template>
-              <EmptyMatchupCard
-                v-for="n in Math.max(0, getExpectedMatchups(2) - getRoundMatchups(2, 'Eastern').length)"
-                :key="'empty-e2-' + n"
-              />
             </div>
           </div>
 
@@ -342,19 +351,17 @@ function getRoundLabel(roundNumber) {
           <div class="round round-1">
             <div class="round-label">{{ getRoundLabel(1) }}</div>
             <div class="round-matchups">
-              <template v-for="matchup in getRoundMatchups(1, 'Eastern')" :key="matchup.id">
+              <template v-for="(matchup, i) in getRoundSlots(1, 'Eastern')" :key="matchup ? matchup.id : 'empty-e1-' + i">
                 <MatchupCard
+                  v-if="matchup"
                   :matchup="matchup"
                   :pick="bracket.getPickForMatchup(matchup.id)"
                   :can-pick="canPickRound(1)"
                   @pick="handlePick"
                   @research="handleResearch"
                 />
+                <EmptyMatchupCard v-else />
               </template>
-              <EmptyMatchupCard
-                v-for="n in Math.max(0, getExpectedMatchups(1) - getRoundMatchups(1, 'Eastern').length)"
-                :key="'empty-e1-' + n"
-              />
             </div>
           </div>
         </div>
@@ -370,36 +377,32 @@ function getRoundLabel(roundNumber) {
           <div v-if="roundNum <= 3" class="mobile-conference">
             <h4 class="conf-label">Western</h4>
             <div class="mobile-matchups">
-              <template v-for="matchup in getRoundMatchups(roundNum, 'Western')" :key="matchup.id">
+              <template v-for="(matchup, i) in getRoundSlots(roundNum, 'Western')" :key="matchup ? matchup.id : 'empty-mw-' + roundNum + '-' + i">
                 <MatchupCard
+                  v-if="matchup"
                   :matchup="matchup"
                   :pick="bracket.getPickForMatchup(matchup.id)"
                   :can-pick="canPickRound(roundNum)"
                   @pick="handlePick"
                   @research="handleResearch"
                 />
+                <EmptyMatchupCard v-else />
               </template>
-              <EmptyMatchupCard
-                v-for="n in Math.max(0, (roundNum === 3 ? 1 : roundNum === 2 ? 2 : 4) - getRoundMatchups(roundNum, 'Western').length)"
-                :key="'empty-mw-' + roundNum + '-' + n"
-              />
             </div>
 
             <h4 class="conf-label">Eastern</h4>
             <div class="mobile-matchups">
-              <template v-for="matchup in getRoundMatchups(roundNum, 'Eastern')" :key="matchup.id">
+              <template v-for="(matchup, i) in getRoundSlots(roundNum, 'Eastern')" :key="matchup ? matchup.id : 'empty-me-' + roundNum + '-' + i">
                 <MatchupCard
+                  v-if="matchup"
                   :matchup="matchup"
                   :pick="bracket.getPickForMatchup(matchup.id)"
                   :can-pick="canPickRound(roundNum)"
                   @pick="handlePick"
                   @research="handleResearch"
                 />
+                <EmptyMatchupCard v-else />
               </template>
-              <EmptyMatchupCard
-                v-for="n in Math.max(0, (roundNum === 3 ? 1 : roundNum === 2 ? 2 : 4) - getRoundMatchups(roundNum, 'Eastern').length)"
-                :key="'empty-me-' + roundNum + '-' + n"
-              />
             </div>
           </div>
 
