@@ -100,6 +100,19 @@ function canPickRound(roundNumber) {
   return !bracket.isDeadlinePassed(round.id)
 }
 
+function canPickMatchup(matchup) {
+  if (!matchup) return false
+  if (matchup.is_locked) return false
+  const round = rounds.value.find(r => r.id === matchup.round_id)
+  if (!round) return false
+  return canPickRound(round.round_number)
+}
+
+function showLockIcon(matchup) {
+  if (!matchup?.is_locked) return false
+  return !bracket.isDeadlinePassed(matchup.round_id)
+}
+
 function getDeadline(roundNumber) {
   const round = rounds.value.find(r => r.round_number === roundNumber)
   if (!round?.pick_deadline) return null
@@ -242,7 +255,7 @@ function getRoundLabel(roundNumber) {
                   v-if="matchup"
                   :matchup="matchup"
                   :pick="bracket.getPickForMatchup(matchup.id)"
-                  :can-pick="canPickRound(1)"
+                  :can-pick="canPickMatchup(matchup)" :locked="showLockIcon(matchup)"
                   @pick="handlePick"
                   @research="handleResearch"
                 />
@@ -260,7 +273,7 @@ function getRoundLabel(roundNumber) {
                   v-if="matchup"
                   :matchup="matchup"
                   :pick="bracket.getPickForMatchup(matchup.id)"
-                  :can-pick="canPickRound(2)"
+                  :can-pick="canPickMatchup(matchup)" :locked="showLockIcon(matchup)"
                   @pick="handlePick"
                   @research="handleResearch"
                 />
@@ -278,7 +291,7 @@ function getRoundLabel(roundNumber) {
                 <MatchupCard
                   :matchup="matchup"
                   :pick="bracket.getPickForMatchup(matchup.id)"
-                  :can-pick="canPickRound(3)"
+                  :can-pick="canPickMatchup(matchup)" :locked="showLockIcon(matchup)"
                   @pick="handlePick"
                   @research="handleResearch"
                 />
@@ -299,7 +312,7 @@ function getRoundLabel(roundNumber) {
               <MatchupCard
                 :matchup="matchup"
                 :pick="bracket.getPickForMatchup(matchup.id)"
-                :can-pick="canPickRound(4)"
+                :can-pick="canPickMatchup(matchup)" :locked="showLockIcon(matchup)"
                 @pick="handlePick"
               />
             </template>
@@ -318,7 +331,7 @@ function getRoundLabel(roundNumber) {
                 <MatchupCard
                   :matchup="matchup"
                   :pick="bracket.getPickForMatchup(matchup.id)"
-                  :can-pick="canPickRound(3)"
+                  :can-pick="canPickMatchup(matchup)" :locked="showLockIcon(matchup)"
                   @pick="handlePick"
                   @research="handleResearch"
                 />
@@ -338,7 +351,7 @@ function getRoundLabel(roundNumber) {
                   v-if="matchup"
                   :matchup="matchup"
                   :pick="bracket.getPickForMatchup(matchup.id)"
-                  :can-pick="canPickRound(2)"
+                  :can-pick="canPickMatchup(matchup)" :locked="showLockIcon(matchup)"
                   @pick="handlePick"
                   @research="handleResearch"
                 />
@@ -356,7 +369,7 @@ function getRoundLabel(roundNumber) {
                   v-if="matchup"
                   :matchup="matchup"
                   :pick="bracket.getPickForMatchup(matchup.id)"
-                  :can-pick="canPickRound(1)"
+                  :can-pick="canPickMatchup(matchup)" :locked="showLockIcon(matchup)"
                   @pick="handlePick"
                   @research="handleResearch"
                 />
@@ -382,7 +395,7 @@ function getRoundLabel(roundNumber) {
                   v-if="matchup"
                   :matchup="matchup"
                   :pick="bracket.getPickForMatchup(matchup.id)"
-                  :can-pick="canPickRound(roundNum)"
+                  :can-pick="canPickMatchup(matchup)" :locked="showLockIcon(matchup)"
                   @pick="handlePick"
                   @research="handleResearch"
                 />
@@ -397,7 +410,7 @@ function getRoundLabel(roundNumber) {
                   v-if="matchup"
                   :matchup="matchup"
                   :pick="bracket.getPickForMatchup(matchup.id)"
-                  :can-pick="canPickRound(roundNum)"
+                  :can-pick="canPickMatchup(matchup)" :locked="showLockIcon(matchup)"
                   @pick="handlePick"
                   @research="handleResearch"
                 />
@@ -411,7 +424,7 @@ function getRoundLabel(roundNumber) {
               <MatchupCard
                 :matchup="matchup"
                 :pick="bracket.getPickForMatchup(matchup.id)"
-                :can-pick="canPickRound(4)"
+                :can-pick="canPickMatchup(matchup)" :locked="showLockIcon(matchup)"
                 @pick="handlePick"
               />
             </template>

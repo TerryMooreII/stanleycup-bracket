@@ -6,7 +6,8 @@ const props = defineProps({
   matchup: { type: Object, required: true },
   pick: { type: Object, default: null },
   canPick: { type: Boolean, default: false },
-  compact: { type: Boolean, default: false }
+  compact: { type: Boolean, default: false },
+  locked: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['pick', 'research'])
@@ -28,7 +29,10 @@ function selectTeam(teamId) {
 </script>
 
 <template>
-  <div class="matchup-card" :class="{ compact }">
+  <div class="matchup-card" :class="{ compact, locked }">
+    <div v-if="locked" class="lock-badge" title="This series is locked">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lock-icon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
     <button
       v-if="canPick && matchup.team_home && matchup.team_away"
       class="research-btn"
@@ -129,6 +133,31 @@ function selectTeam(teamId) {
 .research-icon {
   width: 12px;
   height: 12px;
+}
+
+.lock-badge {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.lock-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.matchup-card.locked .team-row {
+  cursor: not-allowed;
 }
 
 .matchup-card.compact {

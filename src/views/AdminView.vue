@@ -394,6 +394,10 @@ async function addMatchup() {
   }
 }
 
+async function toggleMatchupLock(matchup) {
+  await bracket.updateMatchup(matchup.id, { is_locked: !matchup.is_locked })
+}
+
 async function setWinner(matchup, teamId) {
   const newWinner = matchup.winner_id === teamId ? null : teamId
   await bracket.updateMatchup(matchup.id, { winner_id: newWinner })
@@ -752,6 +756,13 @@ function formatDeadline(dateStr) {
 
           <div class="matchup-actions">
             <BaseButton variant="secondary" size="sm" @click="startEdit(matchup)">Edit</BaseButton>
+            <BaseButton
+              :variant="matchup.is_locked ? 'success' : 'secondary'"
+              size="sm"
+              @click="toggleMatchupLock(matchup)"
+            >
+              {{ matchup.is_locked ? 'Unlock' : 'Lock' }}
+            </BaseButton>
             <BaseButton variant="danger" size="sm" @click="removeMatchup(matchup.id)">Delete</BaseButton>
           </div>
         </template>

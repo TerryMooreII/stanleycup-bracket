@@ -119,6 +119,7 @@ export const useBracketStore = defineStore('bracket', () => {
   }
 
   async function makePick(matchupId, teamId, userId, tiebreakerGoals = null) {
+    if (isMatchupLocked(matchupId)) throw new Error('This series is locked')
     const existing = picks.value.find(p => p.matchup_id === matchupId)
     if (existing) {
       if (existing.team_id === teamId && tiebreakerGoals === null) {
@@ -161,6 +162,13 @@ export const useBracketStore = defineStore('bracket', () => {
 
   function getActiveRound() {
     return rounds.value.find(r => r.is_active)
+  }
+
+  function isMatchupLocked(matchupId) {
+    const m = matchups.value.find(x => x.id === matchupId)
+    if (!m) return false
+    if (m.is_locked) return true
+    return isDeadlinePassed(m.round_id)
   }
 
   function isDeadlinePassed(roundId) {
@@ -248,7 +256,7 @@ export const useBracketStore = defineStore('bracket', () => {
     isViewingCurrentSeason,
     fetchAllSeasons, fetchActiveSeason, fetchSeasonByYear,
     fetchTeams, fetchRounds, fetchMatchups, fetchPicks, fetchAllPicksForMatchups, fetchAll,
-    makePick, getPickForMatchup, getMatchupsForRound, getActiveRound, isDeadlinePassed,
+    makePick, getPickForMatchup, getMatchupsForRound, getActiveRound, isDeadlinePassed, isMatchupLocked,
     createMatchup, updateMatchup, deleteMatchup, updateRound, createSeason
   }
 })
