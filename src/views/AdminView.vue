@@ -238,16 +238,21 @@ async function fetchUsers() {
 
 const pickStatusLoading = ref(false)
 const allPicksForRound = ref([])
+const pickStatusRoundNumber = ref(null)
 
-const activeRoundForStatus = computed(() => bracket.getActiveRound() || null)
+const activeRound = computed(() => bracket.getActiveRound() || null)
 
-const matchupsForActiveRound = computed(() => {
-  const r = activeRoundForStatus.value
+const pickStatusRound = computed(() =>
+  bracket.rounds.find(r => r.round_number === pickStatusRoundNumber.value) || null
+)
+
+const matchupsForPickStatus = computed(() => {
+  const r = pickStatusRound.value
   if (!r) return []
   return bracket.matchups.filter(m => m.round_id === r.id)
 })
 
-const requiredCount = computed(() => matchupsForActiveRound.value.length)
+const requiredCount = computed(() => matchupsForPickStatus.value.length)
 
 const pickStatusRows = computed(() => {
   const required = requiredCount.value
@@ -269,12 +274,12 @@ const pickStatusRows = computed(() => {
 })
 
 async function loadPickStatus() {
-  const round = activeRoundForStatus.value
+  const round = pickStatusRound.value
   if (!round) {
     allPicksForRound.value = []
     return
   }
-  const matchupIds = matchupsForActiveRound.value.map(m => m.id)
+  const matchupIds = matchupsForPickStatus.value.map(m => m.id)
   if (matchupIds.length === 0) {
     allPicksForRound.value = []
     return
@@ -290,8 +295,17 @@ async function loadPickStatus() {
   }
 }
 
+watch(pickStatusRoundNumber, (val) => {
+  if (val != null) loadPickStatus()
+})
+
 watch(activeTab, (tab) => {
-  if (tab === 'pick-status') loadPickStatus()
+  if (tab !== 'pick-status') return
+  if (pickStatusRoundNumber.value == null) {
+    pickStatusRoundNumber.value = activeRound.value?.round_number ?? 1
+  } else {
+    loadPickStatus()
+  }
 })
 
 async function toggleUserActive(user) {
@@ -311,6 +325,7 @@ async function onSeasonChange(year) {
   selectedRound.value = 1
   selectedConference.value = 'Western'
   await bracket.fetchAll(auth.user?.id, year)
+  pickStatusRoundNumber.value = activeRound.value?.round_number ?? 1
 }
 
 onMounted(async () => {
@@ -319,7 +334,9 @@ onMounted(async () => {
     fetchUsers()
   ])
   selectedSeasonYear.value = bracket.season?.year
-  await loadPickStatus()
+  if (pickStatusRoundNumber.value == null) {
+    pickStatusRoundNumber.value = activeRound.value?.round_number ?? 1
+  }
 })
 
 const currentRound = computed(() => {
@@ -456,19 +473,29 @@ function formatDeadline(dateStr) {
 
       <template #pick-status>
         <div class="pick-status-section">
-          <ZamboniLoader v-if="pickStatusLoading" message="Loading pick status..." />
-          <div v-else-if="!activeRoundForStatus" class="empty-state">
-            No round is currently active. Activate a round in the Bracket tab to see pick status.
+          <div class="controls">
+            <div class="control-group">
+              <label>Round</label>
+              <BaseButtonGroup v-model="pickStatusRoundNumber" :options="roundOptions" size="sm" />
+            </div>
           </div>
-          <template v-else>
+
+          <ZamboniLoader v-if="pickStatusLoading" message="Loading pick status..." />
+          <template v-else-if="pickStatusRound">
             <BaseCard padding="md" radius="md" class="pick-status-header">
               <div class="pick-status-header-row">
                 <span class="setting-label">Round</span>
-                <span class="setting-value">{{ activeRoundForStatus.name }}</span>
+                <span class="setting-value pick-status-round-name">
+                  {{ pickStatusRound.name }}
+                  <span
+                    v-if="activeRound && activeRound.id === pickStatusRound.id"
+                    class="status-badge active"
+                  >Active</span>
+                </span>
               </div>
               <div class="pick-status-header-row">
                 <span class="setting-label">Deadline</span>
-                <span class="setting-value">{{ formatDeadline(activeRoundForStatus.pick_deadline) }}</span>
+                <span class="setting-value">{{ formatDeadline(pickStatusRound.pick_deadline) }}</span>
               </div>
               <div class="pick-status-header-row">
                 <span class="setting-label">Picks required</span>
@@ -1208,7 +1235,7 @@ h2 {
 .pick-status-header {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 14px;
 }
 
 .pick-status-header-row {
@@ -1216,6 +1243,16 @@ h2 {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+}
+
+.pick-status-round-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pick-status-round-name .status-badge {
+  margin-top: -6px;
 }
 
 .pick-status-right {
