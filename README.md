@@ -78,7 +78,7 @@ UPDATE public.profiles SET is_admin = true WHERE display_name = 'Your Name';
 
 ## Database Setup
 
-The app uses 6 migrations that create all tables, RLS policies, and seed data. You can apply them through the Supabase dashboard SQL editor or CLI.
+The app uses 11 migrations that create all tables, RLS policies, and seed data. You can apply them through the Supabase dashboard SQL editor or CLI.
 
 ### Tables
 
@@ -109,6 +109,15 @@ All tables have RLS enabled:
 4. `add_tiebreaker_goals` — Tiebreaker predictions for the Final + actual goals on matchups
 5. `unique_tiebreaker_goals_per_matchup` — No duplicate tiebreaker predictions per matchup
 6. `fix_security_vulnerabilities` — Prevent users from escalating to admin
+7. `add_is_active_to_profiles`
+8. `add_get_career_stats_function`
+9. `update_career_stats_add_decided`
+10. `add_matchups_is_locked_and_picks_rls`
+11. `add_heartbeat` — `heartbeat()` RPC plus an hourly `pg_cron` job that calls it
+
+### Keep-alive
+
+Supabase pauses Free plan projects with low activity. The `heartbeat-hourly` cron job uses `pg_net` to call `POST /rest/v1/rpc/heartbeat` on the project's own API every hour. The public `/heartbeat` page in the app calls the same RPC and shows whether Supabase is reachable.
 
 ## Project Structure
 

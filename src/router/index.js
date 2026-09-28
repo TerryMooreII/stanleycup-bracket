@@ -65,6 +65,11 @@ const routes = [
     component: () => import('../views/ResetPasswordView.vue')
   },
   {
+    path: '/heartbeat',
+    name: 'heartbeat',
+    component: () => import('../views/HeartbeatView.vue')
+  },
+  {
     path: '/admin',
     name: 'admin',
     component: () => import('../views/AdminView.vue'),
