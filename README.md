@@ -78,7 +78,7 @@ UPDATE public.profiles SET is_admin = true WHERE display_name = 'Your Name';
 
 ## Database Setup
 
-The app uses 11 migrations that create all tables, RLS policies, and seed data. You can apply them through the Supabase dashboard SQL editor or CLI.
+The database is defined by the migrations in `supabase/migrations/` (tables, RLS policies, functions, cron job, and seed data). See [Migrations](#migrations) and [Backups](#backups) below.
 
 ### Tables
 
@@ -101,19 +101,24 @@ All tables have RLS enabled:
 - **Users cannot** set their own `is_admin` flag (enforced by RLS policy)
 - Profile inserts are locked to `is_admin = false`
 
-### Migrations (in order)
+### Migrations
 
-1. `create_initial_schema` — Teams, rounds, matchups, picks, profiles tables + RLS + seed data
-2. `add_points_per_round` — Configurable points per correct pick per round
-3. `add_seasons_table` — Season/year support with FK on rounds
-4. `add_tiebreaker_goals` — Tiebreaker predictions for the Final + actual goals on matchups
-5. `unique_tiebreaker_goals_per_matchup` — No duplicate tiebreaker predictions per matchup
-6. `fix_security_vulnerabilities` — Prevent users from escalating to admin
-7. `add_is_active_to_profiles`
-8. `add_get_career_stats_function`
-9. `update_career_stats_add_decided`
-10. `add_matchups_is_locked_and_picks_rls`
-11. `add_heartbeat` — `heartbeat()` RPC plus an hourly `pg_cron` job that calls it
+All migrations live in [`supabase/migrations/`](supabase/migrations/) and are
+byte-identical to the hosted project's migration history. Apply them to a fresh
+project with the Supabase CLI:
+
+```bash
+supabase link --project-ref <your-ref>
+supabase db push
+```
+
+### Backups
+
+`npm run backup:supabase` dumps the schema, all table rows, auth users, extensions
+and cron jobs into a gitignored `backups/<timestamp>/` folder. It needs
+`SUPABASE_DB_URL` in `.env` (see `.env.example`). The full restore runbook,
+including the dashboard-only auth settings, is in
+[`supabase/README.md`](supabase/README.md).
 
 ### Keep-alive
 

@@ -1,0 +1,1 @@
+ALTER TABLE public.rounds ADD COLUMN points_per_correct INTEGER NOT NULL DEFAULT 1;
